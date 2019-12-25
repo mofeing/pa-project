@@ -19,7 +19,7 @@ module regfile
 	assign r1_data = register[r1_addr];
 	assign r2_data = register[r2_addr];
 
-	always @(posedge clk) begin
+	always_ff @(posedge clk) begin
 		if (rst) begin
 			foreach (register[i])
 				register[i] = 0;
