@@ -3,7 +3,7 @@ import common::*;
 
 module alu
 (
-	input	func_t	alu_func,
+	input	common::func_t	alu_func,
 	input	word_t	a,
 	input	word_t 	b,
 	output	word_t 	result,
