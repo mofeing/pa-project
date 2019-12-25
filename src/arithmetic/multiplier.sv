@@ -1,4 +1,3 @@
-`include "common.sv"
 import common::*;
 
 module multiplier
@@ -7,4 +6,4 @@ module multiplier
 	output	word_t	c
 );
 	assign {overflow,c} = a * b;
-endmodule
+	assign c = a * b;
