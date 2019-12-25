@@ -8,7 +8,7 @@ module regfile
 	output	word_t	r1_data,
 	input	regid_t	r2_addr,
 	output	word_t	r2_data,
-	input	wire	w_enable,
+	input	logic	w_enable,
 	input	regid_t	w_addr,
 	input 	word_t	w_data
 );
