@@ -4,6 +4,8 @@ import common::*;
 module regfile
 (
 	input 	logic	clk,
+	input	logic	rst,
+
 	input	regid_t	r1_addr,
 	output	word_t	r1_data,
 	input	regid_t	r2_addr,
@@ -18,8 +20,14 @@ module regfile
 	assign r2_data = register[r2_addr];
 
 	always @(posedge clk) begin
-		if (w_enable) begin
-			register[w_addr] <= w_data;
+		if (rst) begin
+			foreach (register[i])
+				register[i] = 0;
+		end
+			else begin
+			if (w_enable) begin
+				register[w_addr] <= w_data;
+			end
 		end
 	end
 
