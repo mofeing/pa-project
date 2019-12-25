@@ -44,7 +44,7 @@ package opcode;
 	} opcode_t;
 endpackage
 
-package tlbwrite;
+package tlbwrite_signal;
 	typedef enum logic[1:0] {
 		off = 0,
 		itlb = 1,
@@ -60,7 +60,7 @@ package common;
 	import exception::*;
 	import mux_a::*;
 	import mux_b::*;
-	import tlbwrite::*;
+	import tlbwrite_signal::*;
 
 	typedef logic [7:0] byte_t;
 	typedef logic [15:0] hword_t;
