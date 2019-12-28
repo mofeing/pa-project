@@ -30,7 +30,10 @@ module stage_if
 	input logic 				mode,
 	input common::tlbwrite_t	flag_tlbwrite,
 	input vpn_t 				tlbwrite_vpn,
-	input ppn_t 				tlbwrite_ppn
+	input ppn_t 				tlbwrite_ppn,
+
+	// PC of threads (speculative increment of a word outside this module)
+	input vptr_t				pc[n_threads]
 );
 	// Flip-Flop registers
 	logic		ff_itlb_miss;
@@ -72,6 +75,7 @@ module stage_if
 		.rst(rst),
 		.thread(ff_thread)
 	);
+	assign ff_pc = pc[ff_thread];
 
 	// Instantiate I-TLB
 	assign tlbwrite_en = (flag_tlbwrite == itlb);
