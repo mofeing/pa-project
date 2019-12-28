@@ -9,41 +9,98 @@ module stage_ex
 	input			clk,
 	input			rst,
 
-	input	IDEX	in,
-	output	EXTL	out
+	// IDEX interface
+	input threadid_t			ex_thread,
+	input logic					ex_itlb_miss,
+	input logic					ex_isvalid,
+	input regid_t				ex_dst,
+	input vptr_t				ex_pc,
+	input word_t				ex_r1,
+	input common::mux_a_t		ex_a,
+	input word_t				ex_r2,
+	input word_t				ex_imm,
+	input common::mux_b_t		ex_b,
+	input common::func_t		ex_alu_func,
+	input logic					ex_flag_mem,
+	input logic					ex_flag_store,
+	input logic					ex_flag_isbyte,
+	input logic					ex_flag_mul,
+	input logic					ex_flag_reg,
+	input logic					ex_flag_jump,
+	input logic					ex_flag_branch,
+	input logic					ex_flag_iret,
+	input common::tlbwrite_t	ex_flag_tlbwrite,
+
+	// EXTL interface
+	output threadid_t 			tl_thread,
+	output logic 				tl_isvalid,
+	output logic 				tl_itlb_miss,
+	output vptr_t 				tl_pc,
+	output word_t 				tl_data,
+	output word_t 				tl_mul,
+	output word_t 				tl_r2,
+	output regid_t 				tl_dst,
+	output logic 				tl_isequal,
+	output logic 				tl_flag_mem,
+	output logic 				tl_flag_store,
+	output logic 				tl_flag_isbyte,
+	output logic 				tl_flag_mul,
+	output logic 				tl_flag_reg,
+	output logic 				tl_flag_jump,
+	output logic 				tl_flag_branch,
+	output logic 				tl_flag_iret,
+	output common::tlbwrite_t 	tl_flag_tlbwrite
 );
+
+	// Flip-Flop registers
+	word_t ff_data;
+	word_t ff_mul;
+	word_t ff_isequal;
+
+	// Internal signals
 	word_t op_a;
 	word_t op_b;
-	word_t data;
-	word_t mul;
 
 	always_ff @(posedge clk) begin
 		if (rst) begin
-			out.data = 0;
-			out.mul = 0;
-			out.is_equal = 0;
+			tl_thread <= 0;
+			tl_isvalid <= 0;
+			tl_itlb_miss <= 0;
+			tl_pc <= 0;
+			tl_r2 <= 0;
+			tl_dst <= 0;
+			tl_flag_mem <= 0;
+			tl_flag_store <= 0;
+			tl_flag_isbyte <= 0;
+			tl_flag_mul <= 0;
+			tl_flag_reg <= 0;
+			tl_flag_jump <= 0;
+			tl_flag_branch <= 0;
+			tl_flag_iret <= 0;
+			tl_flag_tlbwrite <= tlbwrite_signal::off;
+			tl_isequal <= 0;
+			tl_data <= 0;
+			tl_mul <= 0;
 		end
 		else begin
-			out.data <= data;
-			out.mul <= mul;
-			out.is_equal <= (in.r1 == in.r2);
-
-			// Bypass
-			out.thread <= in.thread;
-			out.is_valid <= in.is_valid;
-			out.itlb_miss <= in.itlb_miss;
-			out.dst <= in.dst;
-			out.pc <= in.pc;
-			out.r2 <= in.r2;
-			out.flag_mem <= in.flag_mem;
-			out.flag_store <= in.flag_store;
-			out.flag_isbyte <= in.flag_isbyte;
-			out.flag_mul <= in.flag_mul;
-			out.flag_reg <= in.flag_reg;
-			out.flag_jump <= in.flag_jump;
-			out.flag_branch <= in.flag_branch;
-			out.flag_iret <= in.flag_iret;
-			out.flag_tlbwrite <= in.flag_tlbwrite;
+			tl_thread <= id_thread;
+			tl_isvalid <= id_isvalid;
+			tl_itlb_miss <= id_itlb_miss;
+			tl_pc <= id_pc;
+			tl_r2 <= id_r2;
+			tl_dst <= id_dst;
+			tl_flag_mem <= id_flag_mem;
+			tl_flag_store <= id_flag_store;
+			tl_flag_isbyte <= id_flag_isbyte;
+			tl_flag_mul <= id_flag_mul;
+			tl_flag_reg <= id_flag_reg;
+			tl_flag_jump <= id_flag_jump;
+			tl_flag_branch <= id_flag_branch;
+			tl_flag_iret <= id_flag_iret;
+			tl_flag_tlbwrite <= tlbwrite_signal::off;
+			tl_isequal <= 0;
+			tl_data <= ff_data;
+			tl_mul <= ff_mul;
 		end
 	end
 
@@ -51,18 +108,18 @@ module stage_ex
 	assign op_a = (in.a == mux_a::regfile) ? in.r1 : in.pc;
 	assign op_b = (in.b == mux_b::regfile) ? in.r2 : in.imm;
 	alu alu_instance(
-		.alu_func(in.alu_func),
+		.alu_func(id_alu_func),
 		.a(op_a),
 		.b(op_b),
-		.result(data),
+		.result(ff_data),
 		.zero() // unconnected
 	);
 
 	// Instantiate MULTIPLIER
-	mul mul_instance(
-		.a(in.r1),
-		.b(in.r2),
-		.c(mul)
+	multiplier mul_instance(
+		.a(id_r1),
+		.b(id_r2),
+		.c(ff_mul)
 	);
 
 endmodule
