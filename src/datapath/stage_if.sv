@@ -92,7 +92,7 @@ module stage_if
 	);
 
 	// Instantiate I-CACHE
-	icache icache_inst (
+	icache_directmap icache_inst (
 		.clk(clk),
 		.rst(rst),
 
