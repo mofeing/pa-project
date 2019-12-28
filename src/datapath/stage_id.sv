@@ -145,7 +145,7 @@ module stage_id
 
 		.instr(if_instruction),
 
-		.is_valid(ff_isvalid)
+		.isvalid(ff_isvalid)
 	);
 
 endmodule
