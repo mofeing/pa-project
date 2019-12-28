@@ -32,7 +32,7 @@ module stage_if
 	input vpn_t 				tlbwrite_vpn,
 	input ppn_t 				tlbwrite_ppn
 );
-	// Flip-Flop outputs
+	// Flip-Flop registers
 	logic		ff_itlb_miss;
 	logic		ff_icache_miss;
 	vptr_t		ff_pc;
