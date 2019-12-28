@@ -10,11 +10,11 @@ module stage_if
 	input	rst,
 
 	// IFID interface
-	output logic		itlb_miss,
-	output logic		icache_miss,
-	output vptr_t		pc,
-	output word_t		instruction,
-	output threadid_t	thread,
+	output logic		id_itlb_miss,
+	output logic		id_icache_miss,
+	output vptr_t		id_pc,
+	output word_t		id_instruction,
+	output threadid_t	id_thread,
 
 	// Scheduler
 	inout logic[n_threads-1:0]	stalled,
@@ -43,20 +43,20 @@ module stage_if
 
 	always_ff @(posedge clk) begin
 		if (rst) begin
-			itlb_miss <= 0;
-			icache_miss <= 0;
-			pc <= 0;
-			instruction <= 0;
-			thread <= 0;
+			id_itlb_miss <= 0;
+			id_icache_miss <= 0;
+			id_pc <= 0;
+			id_instruction <= 0;
+			id_thread <= 0;
 			mem_req_ren <= 0;
 			mem_req_addr <= 0;
 		end
 		else begin
-			itlb_miss <= ff_itlb_miss;
-			icache_miss <= ff_icache_miss;
-			pc <= ff_pc;
-			instruction <= ff_instruction;
-			thread <= ff_thread;
+			id_itlb_miss <= ff_itlb_miss;
+			id_icache_miss <= ff_icache_miss;
+			id_pc <= ff_pc;
+			id_instruction <= ff_instruction;
+			id_thread <= ff_thread;
 			mem_req_ren <= ff_mem_req_ren;
 			mem_req_addr <= ff_mem_req_addr;
 		end
