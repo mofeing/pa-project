@@ -1,5 +1,5 @@
 {
     "verilog.linting.modelsim.arguments": "-sv12compat -y src",
-    "verilog.linting.verilator.arguments": "-sv +1800-2017ext+sv -Wall -Isrc",
+    "verilog.linting.verilator.arguments": "-sv +1800-2017ext+sv -Wall -Isrc -Wno-fatal",
     "verilog.linting.linter": "verilator"
 }
