@@ -27,7 +27,7 @@ module stage_if
 	output logic		mem_req_addr,
 
 	// TLB
-	input logic 				mode,
+	input logic[n_threads-1:0]	mode,
 	input common::tlbwrite_t	flag_tlbwrite,
 	input vpn_t 				tlbwrite_vpn,
 	input ppn_t 				tlbwrite_ppn,
@@ -82,7 +82,7 @@ module stage_if
 	itlb itlb_inst (
 		.clk(clk),
 		.rst(rst),
-		.mode(mode),
+		.mode(mode[1 << ff_thread]),
 		.vaddr(ff_pc),
 		.paddr(pc_physical),
 		.miss(ff_itlb_miss),
