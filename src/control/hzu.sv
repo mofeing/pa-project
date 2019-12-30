@@ -55,7 +55,7 @@ module hzu
 					&& history[i].instr.fields.r.dst == history[0].instr.fields.r.src1)
 					isvalid = 0;
 
-			// Design artifact: no 2 contiguous stores
+			// Design artifact: no store/load after store
 			if (history[1].valid
 				&& (
 					history[1].instr.op == opcode::stb
@@ -64,6 +64,8 @@ module hzu
 				&& (
 					history[0].instr.op == opcode::stb
 					|| history[0].instr.op == opcode::stw
+					|| history[0].instr.op == opcode::ldb
+					|| history[0].instr.op == opcode::ldw
 					)
 				)
 				isvalid = 0;
