@@ -38,8 +38,6 @@ int main(int argc, char const *argv[])
 	tick();
 	rst = 0;
 
-	tick();
-
 	/// Check empty cache, different idx (must miss, two mem requests)
 	mod->thread = 0;
 	mod->paddr = 0x1000;
