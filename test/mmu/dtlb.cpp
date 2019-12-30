@@ -128,14 +128,14 @@ int main(int argc, char const *argv[])
     
     //Does not have it *
 
-    //Cache miss
+    //iTLB miss
     mod->mode = 0;
     mod->is_valid = 1;
     mod->flag_mem = 1;
-    mod->vaddr = ; //Direccion a pedir
+    mod->vaddr = 0x0FFFF; //Direccion a pedir
     mod->is_valid = 1;
 	tick();
-
+    tick();
 
 	tick();
 	mod->final();

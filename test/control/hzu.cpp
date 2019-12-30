@@ -70,6 +70,7 @@ int main(int argc, char const *argv[])
     mod->instruction = Vcommon_opcode::stw << 25;
     tick();
     mod->instruction = Vcommon_opcode::ldw << 25;
+    tick();
 
     //If Store word after Store word
     mod->instruction = Vcommon_opcode::stw << 25;
@@ -93,7 +94,8 @@ int main(int argc, char const *argv[])
     mod->instruction = Vcommon_opcode::stb << 25;
     tick();
     mod->instruction = Vcommon_opcode::ldw << 25;
-
+    tick();
+    
     //If Store word after Store byte
     mod->instruction = Vcommon_opcode::stb << 25;
     tick();

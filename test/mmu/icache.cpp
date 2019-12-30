@@ -31,18 +31,14 @@ int main(int argc, char const *argv[])
 		tracer->dump(time++);
 	};
 
-	/// Reset
-	rst = 1;
-	clk = 1;
-	mod->eval();
-	tracer->dump(time++);
+	///Reset iCache
+    rst = 1;
+    tick();
+    tick();
+    tick();
+    rst = 0;
 
 	tick();
-
-	clk = 0;
-	rst = 0;
-	mod->eval();
-	tracer->dump(time++);
 
 	/// Check empty cache, different idx (must miss, two mem requests)
 	mod->thread = 0;
@@ -60,7 +56,7 @@ int main(int argc, char const *argv[])
 
 	/// Answer from memory
 	mod->thread = 3;
-	mod->paddr = 0x2000;
+	mod->paddr = 0x3000;
 	mod->mem_rec_en = 1;
 	mod->mem_rec_addr = 0x2000;
 	for (auto i = 0; i < 4; i++)
