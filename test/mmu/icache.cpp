@@ -32,11 +32,11 @@ int main(int argc, char const *argv[])
 	};
 
 	///Reset iCache
-    rst = 1;
-    tick();
-    tick();
-    tick();
-    rst = 0;
+	rst = 1;
+	tick();
+	tick();
+	tick();
+	rst = 0;
 
 	tick();
 
@@ -46,19 +46,19 @@ int main(int argc, char const *argv[])
 	tick();
 
 	mod->thread = 1;
-	mod->paddr = 0x2000;
+	mod->paddr = 0x1010;
 	tick();
 
 	/// Check waiting cacheling (must miss, but must not issue request to memory)
 	mod->thread = 2;
-	mod->paddr = 0x1000;
+	mod->paddr = 0x2000;
 	tick();
 
 	/// Answer from memory
 	mod->thread = 3;
-	mod->paddr = 0x3000;
+	mod->paddr = 0x1010;
 	mod->mem_rec_en = 1;
-	mod->mem_rec_addr = 0x2000;
+	mod->mem_rec_addr = 0x1010;
 	for (auto i = 0; i < 4; i++)
 		mod->mem_rec_cacheline[i] = 0xFFFFFFFF;
 	tick();
