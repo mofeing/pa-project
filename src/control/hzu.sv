@@ -52,6 +52,7 @@ module hzu
 			drace = 0;
 			for (int i = 1; i < $size(history); i++)
 				if (history[i].valid
+					&& history[i].thread == thread
 					&& history[i].instr.fields.r.dst == history[0].instr.fields.r.src1)
 					isvalid = 0;
 
