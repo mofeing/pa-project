@@ -39,10 +39,17 @@ module dtlb
 			foreach (entry[i]) entry[i].valid = 0;
 		end
 		else begin
+			// increase age of entries
+			foreach (entry[i]) begin
+				if (entry[i].valid) begin
+					entry[i].age++;
+				end
+			end
+
 			// Update entry on write_en
 			if (write_en) begin
 				// Select first empty entry or oldest non-accesed
-				integer j = -1;
+				integer j = 0;
 				integer max = 0;
 				foreach (entry[i]) begin
 					if (~entry[i].valid) begin
