@@ -66,19 +66,19 @@ module hzu
 					drace = 1;
 
 			// Design artifact: no store/load after store
-			if (history[1].valid
-				&& (
-					history[1].instr.op == opcode::stb
-					|| history[1].instr.op == opcode::stw
-					)
-				&& (
-					history[0].instr.op == opcode::stb
-					|| history[0].instr.op == opcode::stw
-					|| history[0].instr.op == opcode::ldb
-					|| history[0].instr.op == opcode::ldw
-					)
-				)
-				isvalid = 0;
+			// if (history[1].valid
+			// 	&& (
+			// 		history[1].instr.op == opcode::stb
+			// 		|| history[1].instr.op == opcode::stw
+			// 		)
+			// 	&& (
+			// 		history[0].instr.op == opcode::stb
+			// 		|| history[0].instr.op == opcode::stw
+			// 		|| history[0].instr.op == opcode::ldb
+			// 		|| history[0].instr.op == opcode::ldw
+			// 		)
+			// 	)
+			// 	isvalid = 0;
 
 			// Commit isvalid if no I-TLB exception and I-cache miss
 			if (itlb_miss || icache_miss || drace) begin
