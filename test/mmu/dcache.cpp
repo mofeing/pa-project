@@ -1,6 +1,6 @@
 #include <verilated_vcd_c.h>
 #include <verilated.h>
-#include "Vicache_directmap.h"
+#include "Vdcache_directmap.h"
 #include <memory>
 
 int main(int argc, char const *argv[])
@@ -8,13 +8,13 @@ int main(int argc, char const *argv[])
 	Verilated::commandArgs(argc, argv);
 
 	// Instantiate module
-	std::unique_ptr<Vicache_directmap> mod(new Vicache_directmap);
+	std::unique_ptr<Vdcache_directmap> mod(new Vdcache_directmap);
 
 	// Activate waveform tracing
 	Verilated::traceEverOn(true);
 	std::unique_ptr<VerilatedVcdC> tracer(new VerilatedVcdC);
 	mod->trace(tracer.get(), 0);
-	tracer->open("icache_directmap.vcd");
+	tracer->open("dcache_directmap.vcd");
 
 	// Tests
 	vluint64_t time = 0;
@@ -31,18 +31,12 @@ int main(int argc, char const *argv[])
 		tracer->dump(time++);
 	};
 
-	///Reset iCache
+	///Reset dCache
 	rst = 1;
 	tick();
 	tick();
 	tick();
 	rst = 0;
-
-	/*
-	8 threads
-	pptr_t paddr 
-	pptr_t mem_rec_addr
-	*/
 
 	/// Check empty cache, different idx (must miss, two mem requests)
 	mod->thread = 0;

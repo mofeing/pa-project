@@ -31,6 +31,72 @@ int main(int argc, char const *argv[])
 		tracer->dump(time++);
 	};
 
+	///If reset
+	rst = 1;
+	tick();
+	tick();
+	tick();
+	rst = 0;
+
+	/*
+	Data received
+	mem_rec_en
+	mem_rec_addr
+	
+	pc[thread]
+
+	mode
+	tlbwrite_t flag_tlbwrite
+	vpn_t tlbwrite_vpn
+	ppn_t tlbwrite_ppn
+	*/
+
+	//Request instruction in address 0x3000
+	//Should give a iTLB_miss
+	mod->pc[1] = 0x3000;
+	tick();
+
+	//Other threads come after
+	mod->pc[2] = 0x4000;
+	tick();
+	
+	mod->pc[3] = 0x5000;
+	tick();
+
+	//More cycles until the OS exception handler starts
+	//Other threads should be stalled
+	tick();
+	tick();
+
+	//OS Exception Handler starts
+	//Change to superuser mode and receive data for iTLB.
+	mod->mode[1] = 1;
+	mod->flag_tlbwrite = 1;
+	mod->tlbwrite_vpn = ;
+	mod->tlbwrite_ppn = ;
+	tick();
+
+	//OS Exception handler finishes
+
+	//Try to load again instruction of thread 1 but cache miss
+	mod->pc[1]=0x3000;
+	mod->mode[1] = 0;
+	mod->flag_tlbwrite = 0;
+	tick();
+
+	//Other thread tries to launch and icache receive data requested by thread 1
+	mod->pc[4]=0x3000;
+	mod->mode[1] = 0;
+	mod->flag_tlbwrite = 0;
+	mod->mem_rec_en = 1;
+	mod->mem_rec_addr = ; //Address received
+	mod->mem_rec_cacheline = ; //Cacheline received
+	tick();
+
+	//Now the instruction of thread 1 should be returned successfully
+	mod->pc[1] = 0x3000;
+	mod->mem_rec_en = 0;
+	tick();
 
 	tick();
 	mod->final();
