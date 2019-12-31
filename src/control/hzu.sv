@@ -6,12 +6,15 @@ typedef struct packed {
 	logic valid;
 	threadid_t thread;
 	instr_t instr;
-	// regid_t src1;
-	// regid_t src2;
-	// regid_t dst;
 } history_entry_t;
 
+function logic has_src2 (common::opcode_t op);
+	return (op == opcode::add) || (op == opcode::sub) || (op == opcode::mul) || (op == opcode::beq) || (op == opcode::tlbwrite);
+endfunction
 
+function logic has_dst (common::opcode_t op);
+	return (op == opcode::add) || (op == opcode::sub) || (op == opcode::mul) || (op == opcode::ldb) || (op == opcode::ldw) || (op == opcode::mov);
+endfunction
 
 module hzu
 (
@@ -28,6 +31,7 @@ module hzu
 );
 	history_entry_t history [8];
 	logic drace;
+	logic issrc2kind;
 
 	assign isvalid = history[0].valid;
 
@@ -50,11 +54,16 @@ module hzu
 
 			// Check for data-race
 			drace = 0;
+			issrc2kind = has_src2(history[0].instr.op);
 			for (int i = 1; i < $size(history); i++)
-				if (history[i].valid
-					&& history[i].thread == thread
-					&& history[i].instr.fields.r.dst == history[0].instr.fields.r.src1)
-					isvalid = 0;
+				if (history[i].valid && history[i].thread == thread && (
+						// dst and src1 do not clash
+						(has_dst(history[i].instr.op) && history[0].instr.fields.r.src1 == history[i].instr.fields.r.dst)
+						// dst and src2 do not clash
+						|| (has_dst(history[i].instr.op) && issrc2kind && history[0].instr.fields.r.src2 == history[i].instr.fields.r.dst)
+					)
+				)
+					drace = 1;
 
 			// Design artifact: no store/load after store
 			if (history[1].valid
