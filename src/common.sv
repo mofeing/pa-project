@@ -1,10 +1,10 @@
 /* verilator lint_off DECLFILENAME */
 package mux_a;
-	typedef enum { regfile, pc } mux_a_t;
+	typedef enum { regfile, pc } mux_a_t /* verilator public */;
 endpackage
 
 package mux_b;
-	typedef enum { regfile, immediate } mux_b_t;
+	typedef enum { regfile, immediate } mux_b_t /* verilator public */;
 endpackage
 
 package exception;
@@ -13,7 +13,7 @@ package exception;
 		dtlb_miss,
 		invalid_instr,
 		alu_overflow
-	} exception_t;
+	} exception_t /* verilator public */;
 endpackage
 
 package func;
@@ -24,7 +24,7 @@ package func;
 		add,
 		sub,
 		slt
-	} func_t;
+	} func_t /* verilator public */;
 endpackage
 
 package opcode;
@@ -41,7 +41,7 @@ package opcode;
 		mov = 14,
 		tlbwrite = 32,
 		iret = 33
-	} opcode_t;
+	} opcode_t /* verilator public */;
 endpackage
 
 package tlbwrite_signal;
@@ -49,7 +49,7 @@ package tlbwrite_signal;
 		off = 0,
 		itlb = 1,
 		dtlb = 2
-	} tlbwrite_t;
+	} tlbwrite_t /* verilator public */;
 endpackage
 /* verilator lint_on DECLFILENAME */
 
