@@ -31,6 +31,21 @@ int main(int argc, char const *argv[])
 		tracer->dump(time++);
 	};
 
+	/*
+	Data received
+	threadid_t thread
+	pptr_t paddr
+
+	dtlb_miss
+	flag_mem
+	flag_store
+	flag_isbyte
+
+	mem_ren_en
+	pptr_t mem_rec_addr
+	cacheline_t mem_rec_cacheline
+	*/
+
 	///Reset dCache
 	rst = 1;
 	tick();
@@ -52,7 +67,7 @@ int main(int argc, char const *argv[])
 	mod->paddr = 0x2000;
 	tick();
 
-	/// Answer from memory
+	/// Answer from memory. Should return the data since it is in memory now
 	mod->thread = 3;
 	mod->paddr = 0x1010;
 	mod->mem_rec_en = 1;
@@ -61,10 +76,46 @@ int main(int argc, char const *argv[])
 		mod->mem_rec_cacheline[i] = 0xFFFFFFFF;
 	tick();
 
+	//Receive an store word request that should miss
 	mod->thread = 4;
 	mod->mem_rec_en = 0;
+	mod->store_en = 1;
+	mod->store_isbyte = 0;
+	mod->store_addr = 0x6000; //Direction requested
+	mod->store_data = ; //Data to store
 	tick();
 
+	//Get data from memory
+	mod->mem_rec_en = 1;
+	mod->mem_rec_addr = 0x6000;
+	for (auto i = 0; i < 4; i++)
+		mod->mem_rec_cacheline[i] = 0xFFFFFFFF;
+	tick();
+
+	//Receive an store word request that should succed
+	mod->store_addr = 0x1010; //Direction requested
+	mod->store_data = 0x1; //Data to store
+	tick();
+
+	//Receive a load and store word at the same time
+	mod->flag_store = 0;
+	mod->store_en = 1;
+	mod->store_isbyte = 0;
+	mod->paddr = 0x1010;
+	mod->store_addr = 0x6000; //Direction requested to store
+	mod->store_data = 0x1; //Data to store
+	tick();
+
+	//Receive two stores word at the same time. One form commiter and other ins TL/C stage
+	mod->flag_store = 1;
+	mod->store_en = 1;
+	mod->store_isbyte = 0;
+	mod->paddr = 0x1010;
+	mod->store_addr = 0x6000; //Direction requested to store
+	mod->store_data = 0x1; //Data to store
+	tick();
+
+	tick();
 	mod->final();
 	tracer->close();
 

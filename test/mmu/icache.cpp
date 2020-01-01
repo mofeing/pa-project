@@ -67,8 +67,10 @@ int main(int argc, char const *argv[])
 		mod->mem_rec_cacheline[i] = 0xFFFFFFFF;
 	tick();
 
-	mod->thread = 4;
+	//Request again the instruction to see if it returns successfully
+	mod->thread = 1;
 	mod->mem_rec_en = 0;
+	mod->paddr = 0x1010;
 	tick();
 
 	mod->final();

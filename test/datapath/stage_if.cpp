@@ -31,7 +31,7 @@ int main(int argc, char const *argv[])
 		tracer->dump(time++);
 	};
 
-	///If reset
+	///If_stage reset
 	rst = 1;
 	tick();
 	tick();
@@ -51,7 +51,7 @@ int main(int argc, char const *argv[])
 	ppn_t tlbwrite_ppn
 	*/
 
-	//Request instruction in address 0x3000
+	//Thread 1 request instruction in address 0x3000
 	//Should give a iTLB_miss
 	mod->pc[1] = 0x3000;
 	tick();
