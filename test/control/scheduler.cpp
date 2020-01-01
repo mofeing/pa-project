@@ -21,9 +21,7 @@ int main(int argc, char const *argv[])
 	auto &clk = mod->clk;
 	auto &rst = mod->rst;
 
-	rst = 0;
-	for (auto i = 0; i < 12; i++)
-	{
+	auto tick = [&]() {
 		clk = 1;
 		mod->eval();
 		tracer->dump(time++);
@@ -31,24 +29,28 @@ int main(int argc, char const *argv[])
 		clk = 0;
 		mod->eval();
 		tracer->dump(time++);
-	}
+	};
 
+	// 10 cycles in reset
 	rst = 1;
-	clk = 1;
-	mod->eval();
-	tracer->dump(time++);
+	for (auto i = 0; i < 10; i++)
+		tick();
 
-	clk = 0;
-	mod->eval();
-	tracer->dump(time++);
+	// 10 cycles normal scheduling
+	rst = 0;
+	for (auto i = 0; i < 10; i++)
+		tick();
 
-	clk = 1;
-	mod->eval();
-	tracer->dump(time++);
+	// 10 cycles forced-scheduling
+	mod->exc_en = 1;
+	mod->exc_thread = 4;
+	for (auto i = 0; i < 10; i++)
+		tick();
 
-	clk = 0;
-	mod->eval();
-	tracer->dump(time++);
+	// 10 cycles of return to normal scheduling
+	mod->exc_en = 0;
+	for (auto i = 0; i < 10; i++)
+		tick();
 
 	tracer->dump(time++);
 	mod->final();
