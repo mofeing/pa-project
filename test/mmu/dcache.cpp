@@ -82,10 +82,11 @@ int main(int argc, char const *argv[])
 	mod->store_en = 1;
 	mod->store_isbyte = 0;
 	mod->store_addr = 0x6000; //Direction requested
-	mod->store_data = ; //Data to store
+	mod->store_data = 0x1; //Data to store
 	tick();
 
 	//Get data from memory
+	mod->store_en = 0;
 	mod->mem_rec_en = 1;
 	mod->mem_rec_addr = 0x6000;
 	for (auto i = 0; i < 4; i++)
@@ -93,6 +94,7 @@ int main(int argc, char const *argv[])
 	tick();
 
 	//Receive an store word request that should succed
+	mod->mem_rec_en = 0;
 	mod->store_addr = 0x1010; //Direction requested
 	mod->store_data = 0x1; //Data to store
 	tick();
