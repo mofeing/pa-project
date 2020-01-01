@@ -72,6 +72,7 @@ module dcache_directmap
 			tag_t rec_tag = mem_rec_addr.fields.tag;
 			if (mem_rec_en && entry[rec_idx].req_tag == rec_tag) begin : mem_receive
 				// Save cacheline
+				entry[rec_idx].valid = 1;
 				entry[rec_idx].tag = entry[rec_idx].req_tag;
 				entry[rec_idx].data = mem_rec_cacheline;
 				entry[rec_idx].waiting = 0;
@@ -80,7 +81,7 @@ module dcache_directmap
 				// Notify stalled threads
 				foreach (listener[i])
 					if (listener[i].valid == 1 && listener[i].idx == rec_idx) begin
-						stalled[1 << i] = 0;
+						stalled[i] = 0;
 						listener[i].valid = 0;
 					end
 			end
@@ -138,6 +139,7 @@ module dcache_directmap
 					// Stall thread
 					listener[thread].valid = 1;
 					listener[thread].idx = req_idx;
+					stalled[thread] = 1;
 
 					// Set cacheline on waiting state
 					entry[req_idx].waiting = 1;

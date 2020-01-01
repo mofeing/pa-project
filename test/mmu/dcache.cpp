@@ -53,6 +53,8 @@ int main(int argc, char const *argv[])
 	tick();
 	rst = 0;
 
+	mod->flag_mem = 1;
+
 	/// Check empty cache, different idx (must miss, two mem requests)
 	mod->thread = 0;
 	mod->paddr = 0x1000;
@@ -82,7 +84,7 @@ int main(int argc, char const *argv[])
 	mod->store_en = 1;
 	mod->store_isbyte = 0;
 	mod->store_addr = 0x6000; //Direction requested
-	mod->store_data = 0x1; //Data to store
+	mod->store_data = 0x1;	//Data to store
 	tick();
 
 	//Get data from memory
@@ -96,7 +98,7 @@ int main(int argc, char const *argv[])
 	//Receive an store word request that should succed
 	mod->mem_rec_en = 0;
 	mod->store_addr = 0x1010; //Direction requested
-	mod->store_data = 0x1; //Data to store
+	mod->store_data = 0x1;	//Data to store
 	tick();
 
 	//Receive a load and store word at the same time
@@ -105,7 +107,7 @@ int main(int argc, char const *argv[])
 	mod->store_isbyte = 0;
 	mod->paddr = 0x1010;
 	mod->store_addr = 0x6000; //Direction requested to store
-	mod->store_data = 0x1; //Data to store
+	mod->store_data = 0x1;	//Data to store
 	tick();
 
 	//Receive two stores word at the same time. One form commiter and other ins TL/C stage
@@ -114,7 +116,7 @@ int main(int argc, char const *argv[])
 	mod->store_isbyte = 0;
 	mod->paddr = 0x1010;
 	mod->store_addr = 0x6000; //Direction requested to store
-	mod->store_data = 0x1; //Data to store
+	mod->store_data = 0x1;	//Data to store
 	tick();
 
 	tick();
