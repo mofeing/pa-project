@@ -129,5 +129,15 @@ package common;
 
 	parameter n_threads = 8;
 	parameter n_cachelines = 2**($bits(idx_t));
-
+	parameter vptr_t[n_threads-1:0] boot_pc = {
+		32'h 1000,
+		32'h 1100,
+		32'h 1200,
+		32'h 1300,
+		32'h 1400,
+		32'h 1500,
+		32'h 1600,
+		32'h 1700
+	};
+	parameter vptr_t exchandler_pc = 32'h 2000;
 endpackage
