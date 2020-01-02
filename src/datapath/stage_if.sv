@@ -24,16 +24,20 @@ module stage_if
 	input pptr_t		mem_rec_addr,
 	input cacheline_t	mem_rec_cacheline,
 	output logic		mem_req_ren,
-	output logic		mem_req_addr,
+	output pptr_t		mem_req_addr,
 
 	// TLB
 	input logic[n_threads-1:0]	mode,
-	input common::tlbwrite_t	flag_tlbwrite,
+	input logic					tlbwrite_en,
 	input vpn_t 				tlbwrite_vpn,
 	input ppn_t 				tlbwrite_ppn,
 
 	// PC of threads (speculative increment of a word outside this module)
-	input vptr_t				pc[n_threads]
+	input vptr_t[n_threads-1:0]		pc,
+
+	// Exception handler
+	input logic			exc_en,
+	input threadid_t	exc_thread
 );
 	// Flip-Flop registers
 	logic		ff_itlb_miss;
@@ -42,7 +46,7 @@ module stage_if
 	word_t		ff_instruction;
 	threadid_t	ff_thread;
 	logic		ff_mem_req_ren;
-	logic 		ff_mem_req_addr;
+	pptr_t 		ff_mem_req_addr;
 
 	always_ff @(posedge clk) begin
 		if (rst) begin
@@ -67,22 +71,23 @@ module stage_if
 
 	// Internal signals
 	pptr_t 		pc_physical;
-	logic 		tlbwrite_en;
 
 	// Instantiate SCHEDULER
 	scheduler_roundrobin scheduler_inst (
 		.clk(clk),
 		.rst(rst),
-		.thread(ff_thread)
+		.thread(ff_thread),
+
+		.exc_en(exc_en),
+		.exc_thread(exc_thread)
 	);
 	assign ff_pc = pc[ff_thread];
 
 	// Instantiate I-TLB
-	assign tlbwrite_en = (flag_tlbwrite == itlb);
 	itlb itlb_inst (
 		.clk(clk),
 		.rst(rst),
-		.mode(mode[1 << ff_thread]),
+		.mode(mode[ff_thread]),
 		.vaddr(ff_pc),
 		.paddr(pc_physical),
 		.miss(ff_itlb_miss),

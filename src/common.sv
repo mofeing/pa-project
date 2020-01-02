@@ -1,3 +1,6 @@
+`ifndef COMMON_H
+`define COMMON_H
+
 /* verilator lint_off DECLFILENAME */
 package mux_a;
 	typedef enum { regfile, pc } mux_a_t /* verilator public */;
@@ -141,3 +144,4 @@ package common;
 	};
 	parameter vptr_t exchandler_pc = 32'h 2000;
 endpackage
+`endif

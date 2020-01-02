@@ -1,7 +1,7 @@
 `include "common.sv"
 import common::*;
 
-module committer (
+module stage_wb (
 	input	clk,
 	input	rst,
 
@@ -45,7 +45,11 @@ module committer (
 	output ppn_t	itlb_ppn,
 	output logic	dtlb_wen,
 	output vpn_t	dtlb_vpn,
-	output ppn_t	dtlb_ppn
+	output ppn_t	dtlb_ppn,
+
+	// Scheduler
+	output logic		exc_en,
+	output threadid_t	exc_thread
 );
 	vptr_t waiting_pc[n_threads];
 	logic exception_state_en;
@@ -109,6 +113,7 @@ module committer (
 					if (tl_flag_iret) begin
 						pc[tl_thread] <= rm0[tl_thread];
 						rm4[tl_thread] <= 0;
+						exception_state_en = 0;
 					end
 				end
 
@@ -121,6 +126,10 @@ module committer (
 				if (tl_flag_tlbwrite == tlbwrite_signal::itlb) itlb_wen <= 1;
 				if (tl_flag_tlbwrite == tlbwrite_signal::dtlb) dtlb_wen <= 1;
 			end
+
+			// Force master thread to scheduler if in exception state
+			exc_en <= exception_state_en;
+			exc_thread <= exception_state_master;
 		end
 	end
 

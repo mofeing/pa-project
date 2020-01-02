@@ -35,68 +35,95 @@ int main(int argc, char const *argv[])
 	rst = 1;
 	tick();
 	tick();
-	tick();
+	clk = 1;
+	mod->eval();
+	tracer->dump(time++);
+	clk = 0;
 	rst = 0;
+	mod->eval();
+	tracer->dump(time++);
 
-	/*
-	Data received
-	mem_rec_en
-	mem_rec_addr
-	
-	pc[thread]
+	mod->pc[0] = 0x1000;
+	mod->pc[1] = 0x1010;
+	mod->pc[2] = 0x1020;
+	mod->pc[3] = 0x1030;
+	mod->pc[4] = 0x1040;
+	mod->pc[5] = 0x1050;
+	mod->pc[6] = 0x1060;
+	mod->pc[7] = 0x1070;
 
-	mode
-	tlbwrite_t flag_tlbwrite
-	vpn_t tlbwrite_vpn
-	ppn_t tlbwrite_ppn
-	*/
+	mod->mode = 0b11111111; // all supervisor mode
 
-	//Thread 1 request instruction in address 0x3000
-	//Should give a iTLB_miss
-	mod->pc[1] = 0x3000;
+	for (int i = 0; i < 8; i++)
+		tick();
+
+	// I-TLB miss test
+	mod->pc[0] = 0x2000;
+	mod->pc[1] = 0x2010;
+	mod->pc[2] = 0x2020;
+	mod->pc[3] = 0x2030;
+	mod->pc[4] = 0x2040;
+	mod->pc[5] = 0x2050;
+	mod->pc[6] = 0x2060;
+	mod->pc[7] = 0x2070;
+
+	mod->mode = 0b00000000; // all user mode
+
 	tick();
-
-	//Other threads come after
-	mod->pc[2] = 0x4000;
 	tick();
-	
-	mod->pc[3] = 0x5000;
-	tick();
-
-	//More cycles until the OS exception handler starts
-	//Other threads should be stalled
 	tick();
 	tick();
 
 	//OS Exception Handler starts
 	//Change to superuser mode and receive data for iTLB.
-	mod->mode[1] = 1;
-	mod->flag_tlbwrite = 1;
-	mod->tlbwrite_vpn = ;
-	mod->tlbwrite_ppn = ;
+	mod->mode = 0b000000100;
+	mod->exc_en = 1;
+	mod->exc_thread = 2;
+	tick();
+	tick();
 	tick();
 
-	//OS Exception handler finishes
+	// Simulate effect of TLBWRITE
+	mod->tlbwrite_en = 1;
+	mod->tlbwrite_vpn = 0x2;
+	mod->tlbwrite_ppn = 0x40;
+	tick();
+	mod->tlbwrite_en = 0;
 
-	//Try to load again instruction of thread 1 but cache miss
-	mod->pc[1]=0x3000;
-	mod->mode[1] = 0;
-	mod->flag_tlbwrite = 0;
+	// Simulate effect of IRET
+	mod->exc_en = 0;
+	mod->mode = 0b00000000;
+	tick();
+	tick();
 	tick();
 
-	//Other thread tries to launch and icache receive data requested by thread 1
-	mod->pc[4]=0x3000;
-	mod->mode[1] = 0;
-	mod->flag_tlbwrite = 0;
+	// Load previous caches (0x100x)
 	mod->mem_rec_en = 1;
-	mod->mem_rec_addr = ; //Address received
-	mod->mem_rec_cacheline = ; //Cacheline received
-	tick();
-
-	//Now the instruction of thread 1 should be returned successfully
-	mod->pc[1] = 0x3000;
+	for (int i = 0; i < 4; i++)
+		mod->mem_rec_cacheline[i] = 0xFFFFFFFF;
+	for (int i = 0; i < 4; i++)
+	{
+		mod->mem_rec_addr = 0x1000 + i * 16;
+		tick();
+	}
 	mod->mem_rec_en = 0;
-	tick();
+
+	for (int i = 0; i < 8; i++)
+		tick();
+
+	// Load cachelines (0x4000x)
+	mod->mem_rec_en = 1;
+	for (int i = 0; i < 4; i++)
+		mod->mem_rec_cacheline[i] = 0xFFFFFFFF;
+	for (int i = 0; i < 4; i++)
+	{
+		mod->mem_rec_addr = 0x40000 + i * 16;
+		tick();
+	}
+
+	mod->mem_rec_en = 0;
+	for (int i = 0; i < 8; i++)
+		tick();
 
 	tick();
 	mod->final();
