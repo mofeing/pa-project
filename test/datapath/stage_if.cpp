@@ -40,6 +40,7 @@ int main(int argc, char const *argv[])
 	tracer->dump(time++);
 	clk = 0;
 	rst = 0;
+	mod->pc[0] = 0x1000; // problem simulating rst
 	mod->eval();
 	tracer->dump(time++);
 
@@ -97,10 +98,16 @@ int main(int argc, char const *argv[])
 	tick();
 	tick();
 
-	// Load previous caches (0x100x)
-	mod->mem_rec_en = 1;
 	for (int i = 0; i < 4; i++)
 		mod->mem_rec_cacheline[i] = 0xFFFFFFFF;
+
+	// NOTE Load erroneus cache (0x0000)
+	mod->mem_rec_en = 1;
+	mod->mem_rec_addr = 0x0000;
+	tick();
+
+	// Load previous caches (0x100x)
+	mod->mem_rec_en = 1;
 	for (int i = 0; i < 4; i++)
 	{
 		mod->mem_rec_addr = 0x1000 + i * 16;
