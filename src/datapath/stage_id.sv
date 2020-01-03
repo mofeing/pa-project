@@ -38,14 +38,14 @@ module stage_id
 	output common::tlbwrite_t	ex_flag_tlbwrite,
 
 	// Register File
-	input	word_t	regfile [n_threads][32]
+	input	word_t[n_threads-1:0][32-1:0]	regfile
 );
 	// Flip-Flop registers
 	logic				ff_isvalid;
 	regid_t				ff_dst;
-	word_t				ff_r1;
+	// word_t				ff_r1;
 	common::mux_a_t		ff_a;
-	word_t				ff_r2;
+	// word_t				ff_r2;
 	word_t				ff_imm;
 	common::mux_b_t		ff_b;
 	common::func_t		ff_alu_func;
@@ -58,7 +58,6 @@ module stage_id
 	logic				ff_flag_branch;
 	logic				ff_flag_iret;
 	common::tlbwrite_t	ff_flag_tlbwrite;
-	regid_t ff_dst;
 
 	// Internal signals
 	regid_t r1;
@@ -93,9 +92,9 @@ module stage_id
 			ex_isvalid <= ff_isvalid; // TODO connect to hazard detection unit
 			ex_dst <= ff_dst;
 			ex_pc <= if_pc;
-			ex_r1 <= r1;
+			ex_r1 <= regfile[if_thread][r1];
 			ex_a <= ff_a;
-			ex_r2 <= r2;
+			ex_r2 <= regfile[if_thread][r2];
 			ex_imm <= ff_imm;
 			ex_b <= ff_b;
 			ex_alu_func <= ff_alu_func;
