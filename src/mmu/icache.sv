@@ -95,6 +95,12 @@ module icache_directmap
 						entry[req_idx].waiting = 1;
 						entry[req_idx].req_tag = req_tag;
 					end
+					else if (entry[req_idx].req_tag == req_tag) begin
+						// Stall thread
+						listener[thread].valid = 1;
+						listener[thread].idx = req_idx;
+						stalled[thread] = 1;
+					end
 				end
 			end
 		end
