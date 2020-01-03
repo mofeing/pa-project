@@ -80,11 +80,10 @@ module stage_tl
 	logic dcache_miss;
 	word_t dcache_data;
 	pptr_t paddr;
-	logic isvalid;
 
 	always_comb begin
-		ff_isvalid = is_valid && ~dtlb_miss && ~dcache_miss;
-		ff_data = (flag_mem && ~flag_store) ? dcache_data : ex_data;
+		ff_isvalid = ex_isvalid && ~ff_dtlb_miss && ~dcache_miss;
+		ff_data = (ex_flag_mem && ~ex_flag_store) ? dcache_data : ex_data;
 	end
 
 	always_ff @(posedge clk) begin
@@ -141,12 +140,12 @@ module stage_tl
 		.write_vpn(write_vpn),
 		.write_ppn(write_ppn),
 
-		.is_valid(isvalid),
+		.is_valid(ex_isvalid),
 		.flag_mem(ex_flag_mem)
 	);
 
 	// Instantiate D-CACHE
-	dcache_directmap dcache_directmap(
+	dcache_directmap dcache_inst(
 		.clk(clk),
 		.rst(rst),
 
@@ -157,7 +156,7 @@ module stage_tl
 		.data(dcache_data),
 
 		.dtlb_miss(ff_dtlb_miss),
-		.flag_mem(ex_flag_mem),
+		.flag_mem(ex_flag_mem && ex_isvalid),
 		.flag_store(ex_flag_store),
 		.flag_isbyte(ex_flag_isbyte),
 
