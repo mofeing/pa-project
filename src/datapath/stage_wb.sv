@@ -24,7 +24,9 @@ module stage_wb (
 	input common::tlbwrite_t	tl_flag_tlbwrite,
 
 	// Special registers and PC
-	output vptr_t	pc[n_threads],
+	// output vptr_t	pc[n_threads],
+	output logic[n_threads-1:0]	pc_en,
+	output vptr_t				pc_data,
 	output word_t	rm0[n_threads],
 	output word_t	rm1[n_threads],
 	output word_t	rm2[n_threads],
@@ -71,15 +73,19 @@ module stage_wb (
 				// waiting_pc[i] = boot_pc[i];
 		end
 		else if (tl_pc == waiting_pc[tl_thread]) begin // only proceed if input PC is the one we are waiting
+			foreach (pc_en[i]) pc_en[i] <= 0;
+
 			// Retry input PC if there has been an error during execution
 			if (~tl_isvalid) begin
-				pc[tl_thread] <= tl_pc;
+				// pc[tl_thread] <= tl_pc;
+				pc_en[tl_thread] <= 1;
+				pc_data <= tl_pc;
 
 				// Jump to exception handler if not yet in exception state and exception is detected
 				if (~exception_state_en && exception_detected) begin
 					exception_state_en <= 1;
 					exception_state_master <= tl_thread;
-					pc[tl_thread] <= exchandler_pc;
+					pc_data <= exchandler_pc;
 
 					rm0[tl_thread] <= tl_pc;
 					if (tl_itlb_miss) begin
@@ -102,12 +108,17 @@ module stage_wb (
 
 				// Jump/branch
 				if (tl_flag_jump && (~tl_flag_branch || (tl_flag_branch && tl_isequal))) begin
-					pc[tl_thread] <= tl_data;
+					// pc[tl_thread] <= tl_data;
+					pc_en[tl_thread] <= 1;
+					pc_data <= tl_data;
+
 					waiting_pc[tl_thread] <= tl_data;
 
 					// IRET
 					if (tl_flag_iret) begin
-						pc[tl_thread] <= rm0[tl_thread];
+						// pc[tl_thread] <= rm0[tl_thread];
+						pc_en[tl_thread] <= 1;
+						pc_data <= rm0[tl_thread];
 						rm4[tl_thread] <= 0;
 						exception_state_en <= 0;
 					end
