@@ -44,7 +44,6 @@ module decoder
 		flag_isbyte = 0;
 		flag_tlbwrite = tlbwrite_signal::off;
 
-		// TODO invalid instruction exception
 		case(instruction.op)
 			opcode::add : begin
 				alu_func = func::add;
@@ -120,6 +119,8 @@ module decoder
 				flag_iret = 1;
 				alu_func = func::add;
 			end
+			default :
+				$display("[decoder] Error: Opcode not recognized (%d)", instruction.op);
 		endcase
 	end
 endmodule
