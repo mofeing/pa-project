@@ -10,16 +10,12 @@ module stage_wb (
 	input logic					tl_isvalid,
 	input logic					tl_itlb_miss,
 	input logic					tl_dtlb_miss,
-	// input logic					tl_dcache_miss,
 	input regid_t				tl_dst,
 	input vptr_t				tl_pc,
 	input word_t				tl_r2,
 	input word_t				tl_data,
 	input logic					tl_isequal,
 	input word_t				tl_mul,
-	// input logic 				tl_flag_mem,
-	// input logic 				tl_flag_store,
-	// input logic 				tl_flag_isbyte,
 	input logic 				tl_flag_mul,
 	input logic 				tl_flag_reg,
 	input logic 				tl_flag_jump,
@@ -35,9 +31,9 @@ module stage_wb (
 	output word_t	rm4[n_threads],
 
 	// Register file
-	output logic	regfile_wen[n_threads],
-	output regid_t	regfile_addr[n_threads],
-	output word_t	regfile_data[n_threads],
+	output logic[n_threads-1:0]		regfile_wen,
+	output regid_t					regfile_addr,
+	output word_t					regfile_data,
 
 	// TLB
 	output logic	itlb_wen,
@@ -58,8 +54,8 @@ module stage_wb (
 
 	always_comb begin
 		exception_detected = tl_itlb_miss && tl_dtlb_miss;
-		regfile_addr[tl_thread] = tl_dst;
-		regfile_data[tl_thread] = (tl_flag_mul) ? tl_mul : tl_data;
+		regfile_addr = tl_dst;
+		regfile_data = (tl_flag_mul) ? tl_mul : tl_data;
 
 		itlb_vpn = tl_data[19:0];
 		itlb_ppn = tl_r2[7:0];
@@ -69,7 +65,7 @@ module stage_wb (
 
 	always_ff @(posedge clk) begin
 		if (rst) begin
-			exception_state_en = 0;
+			exception_state_en <= 0;
 			foreach (waiting_pc[i])
 				waiting_pc[i] = boot_pc[i];
 		end
@@ -80,8 +76,8 @@ module stage_wb (
 
 				// Jump to exception handler if not yet in exception state and exception is detected
 				if (~exception_state_en && exception_detected) begin
-					exception_state_en = 1;
-					exception_state_master = tl_thread;
+					exception_state_en <= 1;
+					exception_state_master <= tl_thread;
 					pc[tl_thread] <= exchandler_pc;
 
 					rm0[tl_thread] <= tl_pc;
@@ -92,7 +88,6 @@ module stage_wb (
 						rm1[tl_thread] <= tl_data;
 						rm2[tl_thread] <= exception::dtlb_miss;
 					end
-					else $error("[WB] unknown exception!");
 					rm4[tl_thread] <= 1;
 				end
 			end
@@ -100,26 +95,26 @@ module stage_wb (
 			// Commit only if not in exception state or if in exception state, current thread is the master
 			else if (~exception_state_en || tl_thread == exception_state_master) begin
 				waiting_pc[tl_thread] <= tl_pc + 4;
-				foreach (regfile_wen[i]) regfile_wen[i] = 0;
+				foreach (regfile_wen[i]) regfile_wen[i] <= 0;
 				dtlb_wen <= 0;
 				itlb_wen <= 0;
 
 				// Jump/branch
 				if (tl_flag_jump && (~tl_flag_branch || (tl_flag_branch && tl_isequal))) begin
-					pc[tl_thread] = tl_data;
+					pc[tl_thread] <= tl_data;
 					waiting_pc[tl_thread] <= tl_data;
 
 					// IRET
 					if (tl_flag_iret) begin
 						pc[tl_thread] <= rm0[tl_thread];
 						rm4[tl_thread] <= 0;
-						exception_state_en = 0;
+						exception_state_en <= 0;
 					end
 				end
 
 				// Write to register file (ALU, MUL, LD)
 				if (tl_flag_reg) begin
-					regfile_wen[tl_thread] = 1;
+					regfile_wen[tl_thread] <= 1;
 				end
 
 				// TLBWRITE
