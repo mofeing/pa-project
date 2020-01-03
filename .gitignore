@@ -77,3 +77,4 @@ $RECYCLE.BIN/
 *.vcd
 build
 store
+*.gtkw
