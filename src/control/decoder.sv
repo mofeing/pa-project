@@ -51,6 +51,12 @@ module decoder
 				b = mux_b::regfile;
 				flag_reg = 1;
 			end
+			opcode::addi : begin
+				alu_func = func::add;
+				a = mux_a::regfile;
+				b = mux_b::immediate;
+				flag_reg = 1;
+			end
 			opcode::sub : begin
 				alu_func = func::sub;
 				a = mux_a::regfile;

@@ -43,7 +43,8 @@ package opcode;
 		jump = 31,
 		mov = 14,
 		tlbwrite = 32,
-		iret = 33
+		iret = 33,
+		addi = 34
 	} opcode_t /* verilator public */;
 endpackage
 

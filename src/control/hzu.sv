@@ -13,7 +13,7 @@ function logic has_src2 (common::opcode_t op);
 endfunction
 
 function logic has_dst (common::opcode_t op);
-	return (op == opcode::add) || (op == opcode::sub) || (op == opcode::mul) || (op == opcode::ldb) || (op == opcode::ldw) || (op == opcode::mov);
+	return (op == opcode::add) || (op == opcode::sub) || (op == opcode::mul) || (op == opcode::ldb) || (op == opcode::ldw) || (op == opcode::mov) || (op == opcode::addi);
 endfunction
 
 module hzu
