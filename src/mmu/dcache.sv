@@ -35,12 +35,12 @@ module dcache_directmap
 
 	// Memory
 	output	logic					mem_req_ren,
-	output	pptr_t					mem_req_raddr, // TODO change in memory module
+	output	pptr_t					mem_req_raddr,
 	output	logic					mem_req_wen,
-	output	pptr_t					mem_req_waddr, // TODO change in memory module
+	output	pptr_t					mem_req_waddr,
 	output	cacheline_t				mem_req_wcacheline,
 	input	logic					mem_rec_en,
-	input	pptr_t					mem_rec_addr, // TODO change in memory module
+	input	pptr_t					mem_rec_addr,
 	input	cacheline_t 			mem_rec_cacheline,
 
 	// Stalled bits

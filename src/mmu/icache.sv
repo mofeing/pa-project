@@ -29,10 +29,10 @@ module icache_directmap
 
 	// Memory
 	input	logic					mem_rec_en,
-	input	pptr_t					mem_rec_addr, // TODO change in memory module
+	input	pptr_t					mem_rec_addr,
 	input	cacheline_t				mem_rec_cacheline,
 	output	logic					mem_req_ren,
-	output	pptr_t					mem_req_addr, // TODO change in memory module
+	output	pptr_t					mem_req_addr,
 
 	// Stalled bits
 	output logic[n_threads-1:0]		stalled
