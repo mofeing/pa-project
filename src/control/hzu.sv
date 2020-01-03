@@ -40,7 +40,6 @@ module hzu
 			foreach (history[i])
 				history[i].valid = 0;
 
-			isvalid = 0;
 		end
 		else begin
 			// Move up history
