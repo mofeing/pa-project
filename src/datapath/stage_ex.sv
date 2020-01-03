@@ -1,6 +1,5 @@
 `include "common.sv"
 import common::*;
-`include "datapath/datapath.sv"
 `include "arithmetic/alu.sv"
 `include "arithmetic/multiplier.sv"
 
@@ -10,26 +9,26 @@ module stage_ex
 	input			rst,
 
 	// IDEX interface
-	input threadid_t			ex_thread,
-	input logic					ex_itlb_miss,
-	input logic					ex_isvalid,
-	input regid_t				ex_dst,
-	input vptr_t				ex_pc,
-	input word_t				ex_r1,
-	input common::mux_a_t		ex_a,
-	input word_t				ex_r2,
-	input word_t				ex_imm,
-	input common::mux_b_t		ex_b,
-	input common::func_t		ex_alu_func,
-	input logic					ex_flag_mem,
-	input logic					ex_flag_store,
-	input logic					ex_flag_isbyte,
-	input logic					ex_flag_mul,
-	input logic					ex_flag_reg,
-	input logic					ex_flag_jump,
-	input logic					ex_flag_branch,
-	input logic					ex_flag_iret,
-	input common::tlbwrite_t	ex_flag_tlbwrite,
+	input threadid_t			id_thread,
+	input logic					id_itlb_miss,
+	input logic					id_isvalid,
+	input regid_t				id_dst,
+	input vptr_t				id_pc,
+	input word_t				id_r1,
+	input common::mux_a_t		id_a,
+	input word_t				id_r2,
+	input word_t				id_imm,
+	input common::mux_b_t		id_b,
+	input common::func_t		id_alu_func,
+	input logic					id_flag_mem,
+	input logic					id_flag_store,
+	input logic					id_flag_isbyte,
+	input logic					id_flag_mul,
+	input logic					id_flag_reg,
+	input logic					id_flag_jump,
+	input logic					id_flag_branch,
+	input logic					id_flag_iret,
+	input common::tlbwrite_t	id_flag_tlbwrite,
 
 	// EXTL interface
 	output threadid_t 			tl_thread,
@@ -105,8 +104,8 @@ module stage_ex
 	end
 
 	// Instantiate ALU
-	assign op_a = (in.a == mux_a::regfile) ? in.r1 : in.pc;
-	assign op_b = (in.b == mux_b::regfile) ? in.r2 : in.imm;
+	assign op_a = (id_a == mux_a::regfile) ? id_r1 : id_pc;
+	assign op_b = (id_b == mux_b::regfile) ? id_r2 : id_imm;
 	alu alu_instance(
 		.alu_func(id_alu_func),
 		.a(op_a),
