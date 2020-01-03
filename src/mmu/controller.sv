@@ -45,11 +45,6 @@ module controller
 	assign dcache_rec_addr = mem_rec_addr;
 	assign dcache_rec_cacheline = mem_rec_cacheline;
 
-	// Bypass d-cache's write request to memory
-	assign mem_req_wen = dcache_req_wen;
-	assign mem_req_waddr = dcache_req_waddr;
-	assign mem_req_wcacheline = dcache_req_wcacheline;
-
 	// Queue load requests
 	always @(posedge clk) begin
 		if (rst) begin
@@ -58,8 +53,12 @@ module controller
 		end
 		else begin
 			// Default values
-			mem_req_ren = 0;
-			mem_req_wen = 0;
+			mem_req_ren <= 0;
+
+			// Bypass d-cache's write request to memory
+			mem_req_wen <= dcache_req_wen;
+			mem_req_waddr <= dcache_req_waddr;
+			mem_req_wcacheline <= dcache_req_wcacheline;
 
 			// Push load requests to queue (d-cache priority)
 			if (icache_req_ren) begin
@@ -73,8 +72,8 @@ module controller
 
 			// Pop queue and send request to memory
 			if (head != tail) begin
-				mem_req_ren = 1;
-				mem_req_raddr = queue[head];
+				mem_req_ren <= 1;
+				mem_req_raddr <= queue[head];
 				head <= (head + 1) % n_threads;
 			end
 		end
