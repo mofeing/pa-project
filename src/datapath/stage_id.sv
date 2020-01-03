@@ -89,7 +89,7 @@ module stage_id
 		else begin
 			ex_thread <= if_thread;
 			ex_itlb_miss <= if_itlb_miss;
-			ex_isvalid <= ff_isvalid; // TODO connect to hazard detection unit
+			ex_isvalid <= ff_isvalid;
 			ex_dst <= ff_dst;
 			ex_pc <= if_pc;
 			ex_r1 <= regfile[if_thread][r1];
