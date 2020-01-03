@@ -58,9 +58,9 @@ module dcache_directmap
 
 	always_ff @(posedge clk) begin
 		// Defaults
-		miss = 0;
-		mem_req_ren = 0;
-		mem_req_wen = 0;
+		miss <= 0;
+		mem_req_ren <= 0;
+		mem_req_wen <= 0;
 
 		if (rst) begin : reset
 			foreach (entry[i]) entry[i].valid = 0;
@@ -81,7 +81,7 @@ module dcache_directmap
 				// Notify stalled threads
 				foreach (listener[i])
 					if (listener[i].valid == 1 && listener[i].idx == rec_idx) begin
-						stalled[i] = 0;
+						stalled[i] <= 0;
 						listener[i].valid = 0;
 					end
 			end
@@ -110,40 +110,40 @@ module dcache_directmap
 				if (~flag_store) begin // load
 					// Read on hit
 					if (entry[req_idx].valid && entry[req_idx].tag == req_tag) begin
-						data = (flag_isbyte)
+						data <= (flag_isbyte)
 							? {24'b0, entry[req_idx].data.bytes[paddr.fields.offset]}
 							: entry[req_idx].data.words[paddr.fields.offset[3:2]];
 					end
 					else
-						miss = 1;
+						miss <= 1;
 				end
 				else begin // store
 					// Design artifact: cannot do store if cacheline can be replaced on the next cycle
 					if (~entry[req_idx].valid || entry[req_idx].tag != req_tag || entry[req_idx].waiting)
-						miss = 1;
+						miss <= 1;
 				end
 
 				// Request cacheline to memory if miss and entry is not waiting other cacheline
 				if (miss && (~entry[req_idx].waiting || ~entry[req_idx].valid)) begin : mem_request
 					// Request cacheline to memory
-					mem_req_ren = 1;
-					mem_req_raddr = paddr;
+					mem_req_ren <= 1;
+					mem_req_raddr <= paddr;
 
 					// Flush cacheline to memory if dirty
 					if (entry[req_idx].valid && entry[req_idx].dirty) begin
-						mem_req_wen = 1;
-						mem_req_waddr = {entry[req_idx].tag, req_idx, 4'b0};
-						mem_req_wcacheline = entry[req_idx].data;
+						mem_req_wen <= 1;
+						mem_req_waddr <= {entry[req_idx].tag, req_idx, 4'b0};
+						mem_req_wcacheline <= entry[req_idx].data;
 					end
 
 					// Stall thread
-					listener[thread].valid = 1;
-					listener[thread].idx = req_idx;
-					stalled[thread] = 1;
+					listener[thread].valid <= 1;
+					listener[thread].idx <= req_idx;
+					stalled[thread] <= 1;
 
 					// Set cacheline on waiting state
-					entry[req_idx].waiting = 1;
-					entry[req_idx].req_tag = req_tag;
+					entry[req_idx].waiting <= 1;
+					entry[req_idx].req_tag <= req_tag;
 				end
 			end
 		end

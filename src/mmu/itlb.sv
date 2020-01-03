@@ -29,8 +29,8 @@ module itlb
 	itlb_entry_t entry [N];
 
 	always_ff @(posedge clk) begin
-		miss = 0;
-		paddr.viface.offset = vaddr.fields.offset;
+		miss <= 0;
+		paddr.viface.offset <= vaddr.fields.offset;
 
 		if (rst) begin
 			foreach (entry[i]) entry[i].valid = 0;
@@ -77,16 +77,16 @@ module itlb
 
 				// Miss if VPN not found
 				if (j == -1)
-					miss = 1;
+					miss <= 1;
 				else begin
 					// Rejuvenate entry if VPN found
 					entry[j].age <= 0;
-					paddr.viface.ppn = entry[j].ppn;
+					paddr.viface.ppn <= entry[j].ppn;
 				end
 			end
 			// Disable virtual memory on supervisor mode
 			else begin
-				paddr.serial = vaddr.serial[19:0];
+				paddr.serial <= vaddr.serial[19:0];
 			end
 		end
 	end

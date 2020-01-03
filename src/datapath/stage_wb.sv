@@ -67,7 +67,8 @@ module stage_wb (
 		if (rst) begin
 			exception_state_en <= 0;
 			foreach (waiting_pc[i])
-				waiting_pc[i] = boot_pc[i];
+				waiting_pc[i] <= 32'h 1000;
+				// waiting_pc[i] = boot_pc[i];
 		end
 		else if (tl_pc == waiting_pc[tl_thread]) begin // only proceed if input PC is the one we are waiting
 			// Retry input PC if there has been an error during execution

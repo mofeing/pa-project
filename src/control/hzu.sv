@@ -53,8 +53,8 @@ module hzu
 			history[0].instr = instr;
 
 			// Check for data-race
-			drace = 0;
-			issrc2kind = has_src2(history[0].instr.op);
+			drace <= 0;
+			issrc2kind <= has_src2(history[0].instr.op);
 			for (int i = 1; i < $size(history); i++)
 				if (history[i].valid && history[i].thread == thread && (
 						// dst and src1 do not clash
@@ -63,7 +63,7 @@ module hzu
 						|| (has_dst(history[i].instr.op) && issrc2kind && history[0].instr.fields.r.src2 == history[i].instr.fields.r.dst)
 					)
 				)
-					drace = 1;
+					drace <= 1;
 
 			// Design artifact: no store/load after store
 			// if (history[1].valid

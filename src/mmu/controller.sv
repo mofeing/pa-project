@@ -53,8 +53,8 @@ module controller
 	// Queue load requests
 	always @(posedge clk) begin
 		if (rst) begin
-			head = 0;
-			tail = 0;
+			head <= 0;
+			tail <= 0;
 		end
 		else begin
 			// Default values
@@ -63,19 +63,19 @@ module controller
 
 			// Push load requests to queue (d-cache priority)
 			if (icache_req_ren) begin
-				queue [tail] = icache_req_raddr;
-				tail = (tail + 1) % n_threads;
+				queue [tail] <= icache_req_raddr;
+				tail <= (tail + 1) % n_threads;
 			end
 			if (dcache_req_ren) begin
-				queue [tail] = dcache_req_raddr;
-				tail = (tail + 1) % n_threads;
+				queue [tail] <= dcache_req_raddr;
+				tail <= (tail + 1) % n_threads;
 			end
 
 			// Pop queue and send request to memory
 			if (head != tail) begin
 				mem_req_ren = 1;
 				mem_req_raddr = queue[head];
-				head = (head + 1) % n_threads;
+				head <= (head + 1) % n_threads;
 			end
 		end
 	end

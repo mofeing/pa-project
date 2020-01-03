@@ -12,9 +12,9 @@ module scheduler_roundrobin
 	input threadid_t	exc_thread
 );
 	always_ff @(posedge clk) begin
-		if (rst)	thread = 0;
+		if (rst)	thread <= 0;
 		else begin
-			thread = (exc_en) ? exc_thread : (thread + 1) % 8;
+			thread <= (exc_en) ? exc_thread : (thread + 1) % 8;
 		end
 	end
 endmodule

@@ -42,8 +42,8 @@ module icache_directmap
 
 	always_ff @(posedge clk) begin
 		// Defaults
-		miss = 0;
-		mem_req_ren = 0;
+		miss <= 0;
+		mem_req_ren <= 0;
 
 		if (rst) begin
 			foreach (entry[i]) entry[i].valid = 0;
@@ -63,8 +63,8 @@ module icache_directmap
 				// Notify stalled threads
 				foreach (listener[i])
 					if (listener[i].valid == 1 && listener[i].idx == rec_idx) begin
-						stalled[i] = 0;
-						listener[i].valid = 0;
+						stalled[i] <= 0;
+						listener[i].valid <= 0;
 					end
 			end
 
@@ -75,31 +75,31 @@ module icache_directmap
 
 				// Read on hit
 				if (entry[req_idx].valid && entry[req_idx].tag == req_tag) begin
-					data = entry[req_idx].data.words[paddr.fields.offset[3:2]];
+					data <= entry[req_idx].data.words[paddr.fields.offset[3:2]];
 				end
 				else begin
-					miss = 1;
+					miss <= 1;
 
 					// Request cacheline to memory if entry is not waiting other cacheline or is invalid
 					if (~entry[req_idx].waiting) begin
 						// Request cacheline to memory
-						mem_req_ren = 1;
-						mem_req_addr = paddr;
+						mem_req_ren <= 1;
+						mem_req_addr <= paddr;
 
 						// Stall thread
-						listener[thread].valid = 1;
-						listener[thread].idx = req_idx;
-						stalled[thread] = 1;
+						listener[thread].valid <= 1;
+						listener[thread].idx <= req_idx;
+						stalled[thread] <= 1;
 
 						// Set cacheline on waiting state
-						entry[req_idx].waiting = 1;
-						entry[req_idx].req_tag = req_tag;
+						entry[req_idx].waiting <= 1;
+						entry[req_idx].req_tag <= req_tag;
 					end
 					else if (entry[req_idx].req_tag == req_tag) begin
 						// Stall thread
-						listener[thread].valid = 1;
-						listener[thread].idx = req_idx;
-						stalled[thread] = 1;
+						listener[thread].valid <= 1;
+						listener[thread].idx <= req_idx;
+						stalled[thread] <= 1;
 					end
 				end
 			end
