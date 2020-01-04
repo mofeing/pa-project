@@ -61,10 +61,10 @@ module icache_directmap
 			tag_t rec_tag = mem_rec_addr.fields.tag;
 			if (mem_rec_en && entry[rec_idx].req_tag == rec_tag) begin
 				// Save cacheline
-				entry[rec_idx].valid = 1;
-				entry[rec_idx].tag = rec_tag;
-				entry[rec_idx].data = mem_rec_cacheline;
-				entry[rec_idx].waiting = 0;
+				entry[rec_idx].valid <= 1;
+				entry[rec_idx].tag <= rec_tag;
+				entry[rec_idx].data <= mem_rec_cacheline;
+				entry[rec_idx].waiting <= 0;
 
 				// Notify stalled threads
 				foreach (listener[i])
