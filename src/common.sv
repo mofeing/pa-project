@@ -32,19 +32,19 @@ endpackage
 
 package opcode;
 	typedef enum logic[6:0] {
-		add = 0,
-		sub = 1,
-		mul = 2,
-		ldb = 10,
-		ldw = 11,
-		stb = 12,
-		stw = 13,
-		beq = 30,
-		jump = 31,
-		mov = 14,
-		tlbwrite = 32,
-		iret = 33,
-		addi = 34
+		add = 'h0,
+		sub = 'h1,
+		mul = 'h2,
+		ldb = 'h10,
+		ldw = 'h11,
+		stb = 'h12,
+		stw = 'h13,
+		beq = 'h30,
+		jump = 'h31,
+		mov = 'h14,
+		tlbwrite = 'h32,
+		iret = 'h33,
+		addi = 'h34
 	} opcode_t /* verilator public */;
 endpackage
 

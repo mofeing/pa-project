@@ -126,7 +126,7 @@ module decoder
 				alu_func = func::add;
 			end
 			default :
-				$display("[decoder] Error: Opcode not recognized (%d)", instruction.op);
+				$display("[decoder] Error: Opcode not recognized (0x%x)", instruction.op);
 		endcase
 	end
 endmodule
