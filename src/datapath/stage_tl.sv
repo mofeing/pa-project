@@ -87,42 +87,22 @@ module stage_tl
 	end
 
 	always_ff @(posedge clk) begin
-		if (rst) begin
-			wb_thread <= 0;
-			wb_isvalid <= 0;
-			wb_itlb_miss <= 0;
-			wb_dtlb_miss <= 0;
-			wb_dst <= 0;
-			wb_pc <= 0;
-			wb_r2 <= 0;
-			wb_data <= 0;
-			wb_isequal <= 0;
-			wb_mul <= 0;
-			wb_flag_mul <= 0;
-			wb_flag_reg <= 0;
-			wb_flag_jump <= 0;
-			wb_flag_branch <= 0;
-			wb_flag_iret <= 0;
-			wb_flag_tlbwrite <= 0;
-		end
-		else begin
-			wb_thread <= ex_thread;
-			wb_isvalid <= ff_isvalid;
-			wb_itlb_miss <= ex_itlb_miss;
-			wb_dtlb_miss <= ff_dtlb_miss;
-			wb_dst <= ex_dst;
-			wb_pc <= ex_pc;
-			wb_r2 <= ex_r2;
-			wb_data <= ff_data;
-			wb_isequal <= ex_isequal;
-			wb_mul <= ex_mul;
-			wb_flag_mul <= ex_flag_mul;
-			wb_flag_reg <= ex_flag_reg;
-			wb_flag_jump <= ex_flag_jump;
-			wb_flag_branch <= ex_flag_branch;
-			wb_flag_iret <= ex_flag_iret;
-			wb_flag_tlbwrite <= ex_flag_tlbwrite;
-		end
+		wb_thread <= ex_thread;
+		wb_isvalid <= ff_isvalid;
+		wb_itlb_miss <= ex_itlb_miss;
+		wb_dtlb_miss <= ff_dtlb_miss;
+		wb_dst <= ex_dst;
+		wb_pc <= ex_pc;
+		wb_r2 <= ex_r2;
+		wb_data <= ff_data;
+		wb_isequal <= ex_isequal;
+		wb_mul <= ex_mul;
+		wb_flag_mul <= ex_flag_mul;
+		wb_flag_reg <= ex_flag_reg;
+		wb_flag_jump <= ex_flag_jump;
+		wb_flag_branch <= ex_flag_branch;
+		wb_flag_iret <= ex_flag_iret;
+		wb_flag_tlbwrite <= ex_flag_tlbwrite;
 	end
 
 	// Instantiate D-TLB
@@ -152,6 +132,7 @@ module stage_tl
 		.thread(ex_thread),
 
 		.paddr(paddr),
+		.isvalid(ex_isvalid),
 		.miss(dcache_miss),
 		.data(dcache_data),
 
