@@ -49,25 +49,16 @@ module stage_if
 	pptr_t 		ff_mem_req_addr;
 
 	always_ff @(posedge clk) begin
-		if (rst) begin
-			id_itlb_miss <= 0;
-			id_icache_miss <= 0;
-			id_pc <= 0;
-			id_instruction <= 0;
-			id_thread <= 0;
-			mem_req_ren <= 0;
-			mem_req_addr <= 0;
-		end
-		else begin
-			id_itlb_miss <= ff_itlb_miss;
-			id_icache_miss <= ff_icache_miss;
-			id_pc <= ff_pc;
-			id_instruction <= ff_instruction;
-			id_thread <= ff_thread;
-			mem_req_ren <= ff_mem_req_ren;
-			mem_req_addr <= ff_mem_req_addr;
-		end
+		id_itlb_miss <= ff_itlb_miss;
+		id_icache_miss <= ff_icache_miss;
+		id_pc <= ff_pc;
+		id_instruction <= ff_instruction;
+		mem_req_ren <= ff_mem_req_ren;
+		mem_req_addr <= ff_mem_req_addr;
 	end
+
+	// NOTE Scheduler's output is already flip-floped for "thread" signal
+	assign id_thread = ff_thread;
 
 	// Internal signals
 	pptr_t 		pc_physical;
