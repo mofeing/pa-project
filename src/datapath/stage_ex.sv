@@ -61,46 +61,24 @@ module stage_ex
 	word_t op_b;
 
 	always_ff @(posedge clk) begin
-		if (rst) begin
-			tl_thread <= 0;
-			tl_isvalid <= 0;
-			tl_itlb_miss <= 0;
-			tl_pc <= 0;
-			tl_r2 <= 0;
-			tl_dst <= 0;
-			tl_flag_mem <= 0;
-			tl_flag_store <= 0;
-			tl_flag_isbyte <= 0;
-			tl_flag_mul <= 0;
-			tl_flag_reg <= 0;
-			tl_flag_jump <= 0;
-			tl_flag_branch <= 0;
-			tl_flag_iret <= 0;
-			tl_flag_tlbwrite <= tlbwrite_signal::off;
-			tl_isequal <= 0;
-			tl_data <= 0;
-			tl_mul <= 0;
-		end
-		else begin
-			tl_thread <= id_thread;
-			tl_isvalid <= id_isvalid;
-			tl_itlb_miss <= id_itlb_miss;
-			tl_pc <= id_pc;
-			tl_r2 <= id_r2;
-			tl_dst <= id_dst;
-			tl_flag_mem <= id_flag_mem;
-			tl_flag_store <= id_flag_store;
-			tl_flag_isbyte <= id_flag_isbyte;
-			tl_flag_mul <= id_flag_mul;
-			tl_flag_reg <= id_flag_reg;
-			tl_flag_jump <= id_flag_jump;
-			tl_flag_branch <= id_flag_branch;
-			tl_flag_iret <= id_flag_iret;
-			tl_flag_tlbwrite <= tlbwrite_signal::off;
-			tl_isequal <= 0;
-			tl_data <= ff_data;
-			tl_mul <= ff_mul;
-		end
+		tl_thread <= id_thread;
+		tl_isvalid <= id_isvalid;
+		tl_itlb_miss <= id_itlb_miss;
+		tl_pc <= id_pc;
+		tl_r2 <= id_r2;
+		tl_dst <= id_dst;
+		tl_flag_mem <= id_flag_mem;
+		tl_flag_store <= id_flag_store;
+		tl_flag_isbyte <= id_flag_isbyte;
+		tl_flag_mul <= id_flag_mul;
+		tl_flag_reg <= id_flag_reg;
+		tl_flag_jump <= id_flag_jump;
+		tl_flag_branch <= id_flag_branch;
+		tl_flag_iret <= id_flag_iret;
+		tl_flag_tlbwrite <= tlbwrite_signal::off;
+		tl_isequal <= 0;
+		tl_data <= ff_data;
+		tl_mul <= ff_mul;
 	end
 
 	// Instantiate ALU
