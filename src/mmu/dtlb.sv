@@ -30,21 +30,43 @@ module dtlb
 	input	logic	flag_mem
 );
 	dtlb_entry_t entry [N];
+	integer lookfor; // TODO Review if lookfor procedure again inside always_ff
 
-	always @(posedge clk) begin
-		miss <= 0;
-		paddr.viface.offset <= vaddr.fields.offset;
+	always_comb begin
+		miss = 0;
+		paddr.viface.offset = vaddr.fields.offset;
 
-		if (rst) begin
-			foreach (entry[i]) entry[i].valid = 0;
-		end
-		else begin
-			// increase age of entries
-			foreach (entry[i]) begin
-				if (entry[i].valid) begin
-					entry[i].age++;
+		if (flag_mem && is_valid) begin
+			// Supervisor mode
+			if (mode)
+				paddr.viface.ppn = vaddr.fields.vpn[7:0];
+
+			// User mode
+			else begin
+				// Search for virtual page table in entries
+				miss = 1;
+				lookfor = 0;
+				foreach (entry[i]) begin
+					if (entry[i].valid && entry[i].vpn == vaddr.fields.vpn) begin
+						lookfor = i;
+						miss = 0;
+						break;
+					end
 				end
+
+				paddr.viface.ppn = entry[lookfor].ppn;
 			end
+		end
+	end
+
+	always_ff @(posedge clk) begin
+		if (rst)
+			foreach (entry[i]) entry[i].valid = 0;
+		else begin
+			// Increase age of entries
+			foreach (entry[i])
+				if (entry[i].valid)
+					entry[i].age++;
 
 			// Update entry on write_en
 			if (write_en) begin
@@ -68,32 +90,9 @@ module dtlb
 				entry[j].age <= 0;
 			end
 
-			if (is_valid && flag_mem) begin
-				// Translate virtual address to physical address
-				if (~mode) begin
-					integer j = -1;
-					foreach (entry[i]) begin
-						if (entry[i].valid && entry[i].vpn == vaddr.fields.vpn) begin
-							j = i;
-							break;
-						end
-					end
-
-					// Miss if VPN not found
-					if (j == -1)
-						miss <= 1;
-					else begin
-						// Rejuvenate entry if VPN found
-						entry[j].age++;
-						paddr.viface.ppn <= entry[j].ppn;
-					end
-				end
-				else begin
-					// Disable virtual memory on supervisor mode
-					paddr.serial <= vaddr.serial[19:0];
-				end
-			end
+			// Rejuvenate entry if VPN found
+			if (flag_mem && is_valid && ~miss)
+				entry[lookfor].age <= 0;
 		end
 	end
-
 endmodule
