@@ -64,50 +64,26 @@ module stage_id
 	regid_t r2;
 
 	always_ff @(posedge clk) begin
-		if (rst) begin
-			ex_thread <= 0;
-			ex_itlb_miss <= 0;
-			ex_isvalid <= 0;
-			ex_dst <= 0;
-			ex_pc <= 0;
-			ex_r1 <= 0;
-			ex_a <= 0;
-			ex_r2 <= 0;
-			ex_imm <= 0;
-			ex_b <= 0;
-			ex_alu_func <= 0;
-			ex_flag_mem <= 0;
-			ex_flag_store <= 0;
-			ex_flag_isbyte <= 0;
-			ex_flag_mul <= 0;
-			ex_flag_reg <= 0;
-			ex_flag_jump <= 0;
-			ex_flag_branch <= 0;
-			ex_flag_iret <= 0;
-			ex_flag_tlbwrite <= tlbwrite_signal::off;
-		end
-		else begin
-			ex_thread <= if_thread;
-			ex_itlb_miss <= if_itlb_miss;
-			ex_isvalid <= ff_isvalid;
-			ex_dst <= ff_dst;
-			ex_pc <= if_pc;
-			ex_r1 <= regfile[if_thread][r1];
-			ex_a <= ff_a;
-			ex_r2 <= regfile[if_thread][r2];
-			ex_imm <= ff_imm;
-			ex_b <= ff_b;
-			ex_alu_func <= ff_alu_func;
-			ex_flag_mem <= ff_flag_mem;
-			ex_flag_store <= ff_flag_store;
-			ex_flag_isbyte <= ff_flag_isbyte;
-			ex_flag_mul <= ff_flag_mul;
-			ex_flag_reg <= ff_flag_reg;
-			ex_flag_jump <= ff_flag_jump;
-			ex_flag_branch <= ff_flag_branch;
-			ex_flag_iret <= ff_flag_iret;
-			ex_flag_tlbwrite <= ff_flag_tlbwrite;
-		end
+		ex_thread <= if_thread;
+		ex_itlb_miss <= if_itlb_miss;
+		ex_isvalid <= ff_isvalid;
+		ex_dst <= ff_dst;
+		ex_pc <= if_pc;
+		ex_r1 <= regfile[if_thread][r1];
+		ex_a <= ff_a;
+		ex_r2 <= regfile[if_thread][r2];
+		ex_imm <= ff_imm;
+		ex_b <= ff_b;
+		ex_alu_func <= ff_alu_func;
+		ex_flag_mem <= ff_flag_mem;
+		ex_flag_store <= ff_flag_store;
+		ex_flag_isbyte <= ff_flag_isbyte;
+		ex_flag_mul <= ff_flag_mul;
+		ex_flag_reg <= ff_flag_reg;
+		ex_flag_jump <= ff_flag_jump;
+		ex_flag_branch <= ff_flag_branch;
+		ex_flag_iret <= ff_flag_iret;
+		ex_flag_tlbwrite <= ff_flag_tlbwrite;
 	end
 
 	// Intance DECODER
