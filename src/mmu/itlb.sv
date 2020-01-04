@@ -27,23 +27,43 @@ module itlb
 	input	ppn_t	write_ppn
 );
 	itlb_entry_t entry [N];
+	integer lookfor; // TODO Review if lookfor procedure again inside always_ff
 
-	always_ff @(posedge clk) begin
-		miss <= 0;
-		paddr.viface.offset <= vaddr.fields.offset;
+	always_comb begin
+		miss = 0;
+		paddr.viface.offset = vaddr.fields.offset;
 
-		if (rst) begin
-			foreach (entry[i]) entry[i].valid = 0;
-		end
+		// Supervisor mode
+		if (mode)
+			paddr.viface.ppn = vaddr.fields.vpn[7:0];
+
+		// User mode
 		else begin
-			// increase age of entries
+			// Search for virtual page table in entries
+			miss = 1;
+			lookfor = 0;
 			foreach (entry[i]) begin
-				if (entry[i].valid) begin
-					entry[i].age++;
+				if (entry[i].valid && entry[i].vpn == vaddr.fields.vpn) begin
+					lookfor = i;
+					miss = 0;
+					break;
 				end
 			end
 
-			// Update entry on write_enable
+			paddr.viface.ppn = entry[lookfor].ppn;
+		end
+	end
+
+	always_ff @(posedge clk) begin
+		if (rst)
+			foreach (entry[i]) entry[i].valid = 0;
+		else begin
+			// Increase age of entries
+			foreach (entry[i])
+				if (entry[i].valid)
+					entry[i].age++;
+
+			// Update entry on write_en
 			if (write_en) begin
 				// Select first empty entry or oldest non-accesed
 				integer j = 0;
@@ -65,29 +85,9 @@ module itlb
 				entry[j].age <= 0;
 			end
 
-			// Translate virtual address to physical address
-			if (~mode) begin
-				integer j = -1;
-				foreach (entry[i]) begin
-					if (entry[i].valid && entry[i].vpn == vaddr.fields.vpn) begin
-						j = i;
-						break;
-					end
-				end
-
-				// Miss if VPN not found
-				if (j == -1)
-					miss <= 1;
-				else begin
-					// Rejuvenate entry if VPN found
-					entry[j].age <= 0;
-					paddr.viface.ppn <= entry[j].ppn;
-				end
-			end
-			// Disable virtual memory on supervisor mode
-			else begin
-				paddr.serial <= vaddr.serial[19:0];
-			end
+			// Rejuvenate entry if VPN found
+			if (~miss)
+				entry[lookfor].age <= 0;
 		end
 	end
 
