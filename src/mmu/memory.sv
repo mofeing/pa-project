@@ -24,9 +24,19 @@ module memory
 
 		if (rst) begin
 			integer file;
+			word_t[3:0] buffer;
+
 			file = $fopen("programs/buffer_sum.bin", "r");
 			$fread(data, file);
 			$fclose(file);
+
+			// Reorder cachelines
+			foreach (data[i]) begin
+				buffer = data[i].words;
+				for (int j = 0; j < 4; j++)
+					data[i].words[j] = buffer[3-j];
+			end
+
 		end
 		else begin
 			if (req_wen) begin
