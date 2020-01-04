@@ -127,8 +127,8 @@ package common;
 	} pptr_t;
 	typedef union packed {
 		logic[127:0] bits;
-		byte_t[3:0] bytes;
-		word_t[1:0] words;
+		byte_t[15:0] bytes;
+		word_t[3:0] words;
 	} cacheline_t;
 
 	parameter n_threads = 8;
