@@ -48,8 +48,15 @@ module icache_directmap
 		req_tag = paddr.fields.tag;
 		offset = paddr.fields.offset / 4; // NOTE we are reading words
 
+		// Miss if tag is not in the entries
 		miss = ~(entry[req_idx].valid && entry[req_idx].tag == req_tag);
 		data = entry[req_idx].data.words[offset];
+
+		// Bypass to output if just received
+		if (mem_rec_en && mem_rec_addr == {paddr.fields.tag, paddr.fields.idx, {$bits(byte_offset_t){1'b0}}}) begin
+			miss = 0;
+			data = mem_rec_cacheline.words[offset];
+		end
 	end
 
 	always_ff @(posedge clk) begin
