@@ -65,8 +65,15 @@ module dcache_directmap
 		rec_idx = mem_rec_addr.fields.idx;
 		rec_tag = mem_rec_addr.fields.tag;
 
+		// Miss if tag is not in the entries
 		miss = ~(entry[req_idx].valid && entry[req_idx].tag == req_tag) || dtlb_miss;
 		data = entry[req_idx].data.words[paddr.fields.offset / 4];
+
+		// Bypass to output if just received
+		if (mem_rec_en && mem_rec_addr == {paddr.fields.tag, paddr.fields.idx, {$bits(byte_offset_t){1'b0}}}) begin
+			miss = 0;
+			data = mem_rec_cacheline.words[paddr.fields.offset / 4];
+		end
 	end
 
 	always_ff @(posedge clk) begin
