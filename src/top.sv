@@ -251,7 +251,7 @@ module top
 		.mem_req_addr(ctr_icache_req_raddr),
 
 		// TLB
-		.mode({fake_rm4[0][0], fake_rm4[1][0], fake_rm4[2][0], fake_rm4[3][0], fake_rm4[4][0], fake_rm4[5][0], fake_rm4[6][0], fake_rm4[7][0]}), // NOTE initial simulation is all in supervisor mode
+		.mode({rm4[0][0], rm4[1][0], rm4[2][0], rm4[3][0], rm4[4][0], rm4[5][0], rm4[6][0], rm4[7][0]}), // NOTE initial simulation is all in supervisor mode
 		.tlbwrite_en(0), // NOTE initial simulation is all in supervisor mode
 		.tlbwrite_vpn(), // NOTE initial simulation is all in supervisor mode
 		.tlbwrite_ppn(), // NOTE initial simulation is all in supervisor mode
