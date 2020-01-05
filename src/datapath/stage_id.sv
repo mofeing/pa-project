@@ -14,6 +14,7 @@ module stage_id
 	input vptr_t		if_pc,
 	input word_t		if_instruction,
 	input threadid_t	if_thread,
+	input word_t		if_rm4,
 
 	// IDEX interface
 	output threadid_t			ex_thread,
@@ -36,6 +37,7 @@ module stage_id
 	output logic				ex_flag_branch,
 	output logic				ex_flag_iret,
 	output common::tlbwrite_t	ex_flag_tlbwrite,
+	output word_t				ex_rm4,
 
 	// Register File
 	input	word_t[n_threads-1:0][32-1:0]	regfile
@@ -84,6 +86,7 @@ module stage_id
 		ex_flag_branch <= ff_flag_branch;
 		ex_flag_iret <= ff_flag_iret;
 		ex_flag_tlbwrite <= ff_flag_tlbwrite;
+		ex_rm4 <= if_rm4;
 	end
 
 	// Intance DECODER

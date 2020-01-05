@@ -15,6 +15,7 @@ module stage_if
 	output vptr_t		id_pc,
 	output word_t		id_instruction,
 	output threadid_t	id_thread,
+	output word_t		id_rm4,
 
 	// Scheduler
 	inout logic[n_threads-1:0]	stalled,
@@ -53,6 +54,7 @@ module stage_if
 		id_icache_miss <= ff_icache_miss;
 		id_pc <= ff_pc;
 		id_instruction <= ff_instruction;
+		id_rm4 <= {31'b0, mode[ff_thread]};
 		mem_req_ren <= ff_mem_req_ren;
 		mem_req_addr <= ff_mem_req_addr;
 	end

@@ -150,6 +150,7 @@ module top
 	vptr_t		ifid_pc;
 	word_t		ifid_instruction;
 	threadid_t	ifid_thread;
+	word_t		ifid_rm4;
 
 	/// IDEX interface
 	threadid_t			idex_thread;
@@ -172,6 +173,7 @@ module top
 	logic				idex_flag_branch;
 	logic				idex_flag_iret;
 	common::tlbwrite_t	idex_flag_tlbwrite;
+	word_t				idex_rm4;
 
 	// EXTL interface
 	// NOTE Fake 5-stage EX pipeline
@@ -194,6 +196,7 @@ module top
 	logic 				extl_flag_branch[REPEAT];
 	logic 				extl_flag_iret[REPEAT];
 	common::tlbwrite_t 	extl_flag_tlbwrite[REPEAT];
+	word_t				extl_rm4[REPEAT];
 
 	// TLWB interface
 	threadid_t			tlwb_thread;
@@ -235,6 +238,7 @@ module top
 		.id_pc(ifid_pc),
 		.id_instruction(ifid_instruction),
 		.id_thread(ifid_thread),
+		.id_rm4(ifid_rm4),
 
 		// Scheduler
 		.stalled(stalled),
@@ -270,6 +274,7 @@ module top
 		.if_pc(ifid_pc),
 		.if_instruction(ifid_instruction),
 		.if_thread(ifid_thread),
+		.if_rm4(ifid_rm4),
 
 		// EX connection
 		.ex_thread(idex_thread),
@@ -292,6 +297,7 @@ module top
 		.ex_flag_branch(idex_flag_branch),
 		.ex_flag_iret(idex_flag_iret),
 		.ex_flag_tlbwrite(idex_flag_tlbwrite),
+		.ex_rm4(idex_rm4),
 
 		// Register file
 		.regfile(regfile)
@@ -322,6 +328,7 @@ module top
 		.id_flag_branch(idex_flag_branch),
 		.id_flag_iret(idex_flag_iret),
 		.id_flag_tlbwrite(idex_flag_tlbwrite),
+		.id_rm4(idex_rm4),
 
 		// EXTL interface
 		.tl_thread(extl_thread[0]),
@@ -341,7 +348,8 @@ module top
 		.tl_flag_jump(extl_flag_jump[0]),
 		.tl_flag_branch(extl_flag_branch[0]),
 		.tl_flag_iret(extl_flag_iret[0]),
-		.tl_flag_tlbwrite(extl_flag_tlbwrite[0])
+		.tl_flag_tlbwrite(extl_flag_tlbwrite[0]),
+		.tl_rm4(extl_rm4[0])
 	);
 
 	always_ff @(posedge clk) begin
@@ -364,6 +372,7 @@ module top
 			extl_flag_branch[i] <= extl_flag_branch[i-1];
 			extl_flag_iret[i] <= extl_flag_iret[i-1];
 			extl_flag_tlbwrite[i] <= extl_flag_tlbwrite[i-1];
+			extl_rm4[i] <= extl_rm4[i-1];
 		end
 	end
 
@@ -390,6 +399,7 @@ module top
 		.ex_flag_branch(extl_flag_branch[REPEAT-1]),
 		.ex_flag_iret(extl_flag_iret[REPEAT-1]),
 		.ex_flag_tlbwrite(extl_flag_tlbwrite[REPEAT-1]),
+		.ex_rm4(extl_rm4[REPEAT-1]),
 
 		// TLWB connection
 		.wb_thread(tlwb_thread),

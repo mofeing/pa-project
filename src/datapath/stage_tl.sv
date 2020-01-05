@@ -27,6 +27,7 @@ module stage_tl
 	input logic 				ex_flag_branch,
 	input logic 				ex_flag_iret,
 	input common::tlbwrite_t 	ex_flag_tlbwrite,
+	input word_t				ex_rm4,
 
 	// TLWB interface
 	output threadid_t			wb_thread,
@@ -63,7 +64,6 @@ module stage_tl
 	input	logic	write_en,
 	input	vpn_t	write_vpn,
 	input	ppn_t	write_ppn,
-	input	logic	mode,
 
 	// STORE interface
 	input	logic	store_en,
@@ -110,7 +110,7 @@ module stage_tl
 		.clk(clk),
 		.rst(rst),
 
-		.mode(mode),
+		.mode(ex_rm4[0]),
 		.vaddr(ex_data),
 		.paddr(paddr),
 

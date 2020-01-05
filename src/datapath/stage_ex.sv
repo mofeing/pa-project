@@ -29,6 +29,7 @@ module stage_ex
 	input logic					id_flag_branch,
 	input logic					id_flag_iret,
 	input common::tlbwrite_t	id_flag_tlbwrite,
+	input word_t				id_rm4,
 
 	// EXTL interface
 	output threadid_t 			tl_thread,
@@ -48,7 +49,8 @@ module stage_ex
 	output logic 				tl_flag_jump,
 	output logic 				tl_flag_branch,
 	output logic 				tl_flag_iret,
-	output common::tlbwrite_t 	tl_flag_tlbwrite
+	output common::tlbwrite_t 	tl_flag_tlbwrite,
+	output word_t				tl_rm4
 );
 
 	// Flip-Flop registers
@@ -79,6 +81,7 @@ module stage_ex
 		tl_isequal <= 0;
 		tl_data <= ff_data;
 		tl_mul <= ff_mul;
+		tl_rm4 <= id_rm4;
 	end
 
 	// Instantiate ALU
