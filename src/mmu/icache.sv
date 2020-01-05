@@ -41,13 +41,15 @@ module icache_directmap
 	icache_listener_t listener[n_threads];
 	idx_t req_idx;
 	tag_t req_tag;
+	byte_offset_t offset;
 
 	always_comb begin
 		req_idx = paddr.fields.idx;
 		req_tag = paddr.fields.tag;
+		offset = paddr.fields.offset / 4; // NOTE we are reading words
 
 		miss = ~(entry[req_idx].valid && entry[req_idx].tag == req_tag);
-		data = entry[req_idx].data.words[paddr.fields.offset];
+		data = entry[req_idx].data.words[offset];
 	end
 
 	always_ff @(posedge clk) begin
