@@ -103,12 +103,14 @@ module decoder
 				b = mux_b::immediate;
 				flag_jump = 1;
 				flag_branch = 1;
+				immediate = {17'h0, instruction.fields.b.offset_hi, instruction.fields.b.offset_lo};
 			end
 			opcode::jump : begin
 				alu_func = func::add;
 				a = mux_a::regfile;
 				b = mux_b::immediate;
 				flag_jump = 1;
+				immediate = {12'h0, instruction.fields.b.offset_hi, instruction.fields.b.src2, instruction.fields.b.offset_lo};
 			end
 			opcode::mov : begin
 				alu_func = func::land;
