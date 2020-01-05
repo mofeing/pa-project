@@ -37,7 +37,9 @@ int main(int argc, char const *argv[])
 	tick();
 	rst = 0;
 
-	for (int i = 0; i < 100; i++)
+	auto cycles = 0;
+	constexpr auto max_cycles = 8500;
+	while (!std::all_of(&mod->top__DOT__pc[0], &mod->top__DOT__pc[8], [](IData pci) { return pci == 0x101C; }) && cycles++ < max_cycles)
 		tick();
 
 	mod->final();
