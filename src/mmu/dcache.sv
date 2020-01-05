@@ -66,7 +66,7 @@ module dcache_directmap
 		rec_tag = mem_rec_addr.fields.tag;
 
 		miss = ~(entry[req_idx].valid && entry[req_idx].tag == req_tag) || dtlb_miss;
-		data = entry[req_idx].data.words[paddr.fields.offset];
+		data = entry[req_idx].data.words[paddr.fields.offset / 4];
 	end
 
 	always_ff @(posedge clk) begin
