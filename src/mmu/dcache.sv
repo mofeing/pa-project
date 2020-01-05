@@ -99,11 +99,11 @@ module dcache_directmap
 				end
 
 				// Save cacheline
-				entry[rec_idx].valid = 1;
-				entry[rec_idx].tag = rec_tag;
-				entry[rec_idx].data = mem_rec_cacheline;
-				entry[rec_idx].waiting = 0;
-				entry[rec_idx].dirty = 0;
+				entry[rec_idx].valid <= 1;
+				entry[rec_idx].tag <= rec_tag;
+				entry[rec_idx].data <= mem_rec_cacheline;
+				entry[rec_idx].waiting <= 0;
+				entry[rec_idx].dirty <= 0;
 
 				// Notify stalled threads
 				foreach (listener[i])
@@ -122,8 +122,8 @@ module dcache_directmap
 					mem_req_raddr <= {req_tag, req_idx, {$bits(byte_offset_t){1'b0}}};
 
 					// Set cacheline on waiting state
-					entry[req_idx].waiting = 1;
-					entry[req_idx].req_tag = req_tag;
+					entry[req_idx].waiting <= 1;
+					entry[req_idx].req_tag <= req_tag;
 				end
 
 				// Stall thread
