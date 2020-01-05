@@ -82,7 +82,7 @@ module stage_tl
 	pptr_t paddr;
 
 	always_comb begin
-		ff_isvalid = ex_isvalid && ~ff_dtlb_miss && ~dcache_miss;
+		ff_isvalid = (ex_flag_mem) ? (ex_isvalid && ~ff_dtlb_miss && ~dcache_miss) : ex_isvalid;
 		ff_data = (ex_flag_mem && ~ex_flag_store) ? dcache_data : ex_data;
 	end
 
