@@ -174,24 +174,26 @@ module top
 	common::tlbwrite_t	idex_flag_tlbwrite;
 
 	// EXTL interface
-	threadid_t 			extl_thread;
-	logic 				extl_isvalid;
-	logic 				extl_itlb_miss;
-	vptr_t 				extl_pc;
-	word_t 				extl_data;
-	word_t 				extl_mul;
-	word_t 				extl_r2;
-	regid_t 			extl_dst;
-	logic 				extl_isequal;
-	logic 				extl_flag_mem;
-	logic 				extl_flag_store;
-	logic 				extl_flag_isbyte;
-	logic 				extl_flag_mul;
-	logic 				extl_flag_reg;
-	logic 				extl_flag_jump;
-	logic 				extl_flag_branch;
-	logic 				extl_flag_iret;
-	common::tlbwrite_t 	extl_flag_tlbwrite;
+	// NOTE Fake 5-stage EX pipeline
+	parameter REPEAT = 4;
+	threadid_t 			extl_thread[REPEAT];
+	logic 				extl_isvalid[REPEAT];
+	logic 				extl_itlb_miss[REPEAT];
+	vptr_t 				extl_pc[REPEAT];
+	word_t 				extl_data[REPEAT];
+	word_t 				extl_mul[REPEAT];
+	word_t 				extl_r2[REPEAT];
+	regid_t 			extl_dst[REPEAT];
+	logic 				extl_isequal[REPEAT];
+	logic 				extl_flag_mem[REPEAT];
+	logic 				extl_flag_store[REPEAT];
+	logic 				extl_flag_isbyte[REPEAT];
+	logic 				extl_flag_mul[REPEAT];
+	logic 				extl_flag_reg[REPEAT];
+	logic 				extl_flag_jump[REPEAT];
+	logic 				extl_flag_branch[REPEAT];
+	logic 				extl_flag_iret[REPEAT];
+	common::tlbwrite_t 	extl_flag_tlbwrite[REPEAT];
 
 	// TLWB interface
 	threadid_t			tlwb_thread;
@@ -322,49 +324,72 @@ module top
 		.id_flag_tlbwrite(idex_flag_tlbwrite),
 
 		// EXTL interface
-		.tl_thread(extl_thread),
-		.tl_isvalid(extl_isvalid),
-		.tl_itlb_miss(extl_itlb_miss),
-		.tl_pc(extl_pc),
-		.tl_data(extl_data),
-		.tl_mul(extl_mul),
-		.tl_r2(extl_r2),
-		.tl_dst(extl_dst),
-		.tl_isequal(extl_isequal),
-		.tl_flag_mem(extl_flag_mem),
-		.tl_flag_store(extl_flag_store),
-		.tl_flag_isbyte(extl_flag_isbyte),
-		.tl_flag_mul(extl_flag_mul),
-		.tl_flag_reg(extl_flag_reg),
-		.tl_flag_jump(extl_flag_jump),
-		.tl_flag_branch(extl_flag_branch),
-		.tl_flag_iret(extl_flag_iret),
-		.tl_flag_tlbwrite(extl_flag_tlbwrite)
+		.tl_thread(extl_thread[0]),
+		.tl_isvalid(extl_isvalid[0]),
+		.tl_itlb_miss(extl_itlb_miss[0]),
+		.tl_pc(extl_pc[0]),
+		.tl_data(extl_data[0]),
+		.tl_mul(extl_mul[0]),
+		.tl_r2(extl_r2[0]),
+		.tl_dst(extl_dst[0]),
+		.tl_isequal(extl_isequal[0]),
+		.tl_flag_mem(extl_flag_mem[0]),
+		.tl_flag_store(extl_flag_store[0]),
+		.tl_flag_isbyte(extl_flag_isbyte[0]),
+		.tl_flag_mul(extl_flag_mul[0]),
+		.tl_flag_reg(extl_flag_reg[0]),
+		.tl_flag_jump(extl_flag_jump[0]),
+		.tl_flag_branch(extl_flag_branch[0]),
+		.tl_flag_iret(extl_flag_iret[0]),
+		.tl_flag_tlbwrite(extl_flag_tlbwrite[0])
 	);
+
+	always_ff @(posedge clk) begin
+		for (int i = 1; i < REPEAT; i++) begin
+			extl_thread[i] <= extl_thread[i-1];
+			extl_isvalid[i] <= extl_isvalid[i-1];
+			extl_itlb_miss[i] <= extl_itlb_miss[i-1];
+			extl_pc[i] <= extl_pc[i-1];
+			extl_data[i] <= extl_data[i-1];
+			extl_mul[i] <= extl_mul[i-1];
+			extl_r2[i] <= extl_r2[i-1];
+			extl_dst[i] <= extl_dst[i-1];
+			extl_isequal[i] <= extl_isequal[i-1];
+			extl_flag_mem[i] <= extl_flag_mem[i-1];
+			extl_flag_store[i] <= extl_flag_store[i-1];
+			extl_flag_isbyte[i] <= extl_flag_isbyte[i-1];
+			extl_flag_mul[i] <= extl_flag_mul[i-1];
+			extl_flag_reg[i] <= extl_flag_reg[i-1];
+			extl_flag_jump[i] <= extl_flag_jump[i-1];
+			extl_flag_branch[i] <= extl_flag_branch[i-1];
+			extl_flag_iret[i] <= extl_flag_iret[i-1];
+			extl_flag_tlbwrite[i] <= extl_flag_tlbwrite[i-1];
+		end
+	end
 
 	stage_tl stage_tl_inst (
 		.clk(clk),
 		.rst(rst),
 
 		// EXTL connection
-		.ex_thread(extl_thread),
-		.ex_isvalid(extl_isvalid),
-		.ex_itlb_miss(extl_itlb_miss),
-		.ex_pc(extl_pc),
-		.ex_data(extl_data),
-		.ex_mul(extl_mul),
-		.ex_r2(extl_r2),
-		.ex_dst(extl_dst),
-		.ex_isequal(extl_isequal),
-		.ex_flag_mem(extl_flag_mem),
-		.ex_flag_store(extl_flag_store),
-		.ex_flag_isbyte(extl_flag_isbyte),
-		.ex_flag_mul(extl_flag_mul),
-		.ex_flag_reg(extl_flag_reg),
-		.ex_flag_jump(extl_flag_jump),
-		.ex_flag_branch(extl_flag_branch),
-		.ex_flag_iret(extl_flag_iret),
-		.ex_flag_tlbwrite(extl_flag_tlbwrite),
+		.ex_thread(extl_thread[REPEAT-1]),
+		.ex_isvalid(extl_isvalid[REPEAT-1]),
+		.ex_itlb_miss(extl_itlb_miss[REPEAT-1]),
+		.ex_pc(extl_pc[REPEAT-1]),
+		.ex_data(extl_data[REPEAT-1]),
+		.ex_mul(extl_mul[REPEAT-1]),
+		.ex_r2(extl_r2[REPEAT-1]),
+		.ex_dst(extl_dst[REPEAT-1]),
+		.ex_isequal(extl_isequal[REPEAT-1]),
+		.ex_flag_mem(extl_flag_mem[REPEAT-1]),
+		.ex_flag_store(extl_flag_store[REPEAT-1]),
+		.ex_flag_isbyte(extl_flag_isbyte[REPEAT-1]),
+		.ex_flag_mul(extl_flag_mul[REPEAT-1]),
+		.ex_flag_reg(extl_flag_reg[REPEAT-1]),
+		.ex_flag_jump(extl_flag_jump[REPEAT-1]),
+		.ex_flag_branch(extl_flag_branch[REPEAT-1]),
+		.ex_flag_iret(extl_flag_iret[REPEAT-1]),
+		.ex_flag_tlbwrite(extl_flag_tlbwrite[REPEAT-1]),
 
 		// TLWB connection
 		.wb_thread(tlwb_thread),
