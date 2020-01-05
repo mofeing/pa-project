@@ -17,6 +17,9 @@ function logic has_dst (common::opcode_t op);
 endfunction
 
 module hzu
+#(
+	parameter N = 5
+)
 (
 	input				clk,
 	input				rst,
@@ -29,7 +32,7 @@ module hzu
 
 	output	logic		isvalid
 );
-	history_entry_t history [n_threads-1];
+	history_entry_t history [N];
 	logic issrc2kind;
 
 	always_comb begin
