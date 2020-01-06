@@ -219,6 +219,11 @@ module top
 	pptr_t	store_addr;
 	word_t	store_data;
 
+	// TLB write
+	logic itlb_wen;
+	logic dtlb_wen;
+	vpn_t tlbwrite_vpn;
+	ppn_t tlbwrite_ppn;
 
 	// Stages
 	stage_if stage_if_inst(
@@ -245,9 +250,9 @@ module top
 
 		// TLB
 		.mode({rm4[0][0], rm4[1][0], rm4[2][0], rm4[3][0], rm4[4][0], rm4[5][0], rm4[6][0], rm4[7][0]}), // NOTE initial simulation is all in supervisor mode
-		.tlbwrite_en(0), // NOTE initial simulation is all in supervisor mode
-		.tlbwrite_vpn(), // NOTE initial simulation is all in supervisor mode
-		.tlbwrite_ppn(), // NOTE initial simulation is all in supervisor mode
+		.tlbwrite_en(itlb_wen),
+		.tlbwrite_vpn(tlbwrite_vpn),
+		.tlbwrite_ppn(tlbwrite_ppn),
 
 		// PC of threads (speculative increment of a word outside this module)
 		.pc({pc[0], pc[1], pc[2], pc[3], pc[4], pc[5], pc[6], pc[7]}),
@@ -426,10 +431,9 @@ module top
 		.mem_rec_addr(ctr_dcache_rec_addr),
 		.mem_rec_cacheline(ctr_dcache_rec_cacheline),
 
-		// .write_en(write_en),
-		// .write_vpn(write_vpn),
-		// .write_ppn(write_ppn),
-		// .mode(mode),
+		.tlbwrite_en(dtlb_wen),
+		.tlbwrite_vpn(tlbwrite_vpn),
+		.tlbwrite_ppn(tlbwrite_ppn),
 
 		.store_en(store_en),
 		.store_isbyte(store_isbyte),
@@ -463,6 +467,10 @@ module top
 			store_addr <= tlwb_data[19:0];
 			store_isbyte <= tlwb_flag_isbyte;
 			store_data <= tlwb_r2;
+			itlb_wen <= 0;
+			dtlb_wen <= 0;
+			tlbwrite_vpn <= tlwb_data[19:0];
+			tlbwrite_ppn <= tlwb_r2[7:0];
 
 			// Maintain instruction order
 			if (tlwb_pc == waiting_pc[tlwb_thread]) begin
@@ -489,9 +497,9 @@ module top
 					if (tlwb_flag_store)
 						store_en <= 1;
 
-					// TODO TLBWRITE
-					// if (tlwb_flag_tlbwrite == tlbwrite_signal::itlb) itlb_wen <= 1;
-					// if (tlwb_flag_tlbwrite == tlbwrite_signal::dtlb) dtlb_wen <= 1;
+					// TLBWRITE
+					if (tlwb_flag_tlbwrite == tlbwrite_signal::itlb) itlb_wen <= 1;
+					if (tlwb_flag_tlbwrite == tlbwrite_signal::dtlb) dtlb_wen <= 1;
 				end
 
 				// Retry waiting PC if execution has not been valid
