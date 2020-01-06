@@ -441,8 +441,9 @@ module top
 		.store_data(store_data)
 	);
 
-	// logic exception_state_en;
-	// threadid_t exception_state_master;
+	logic exception_state_en;
+	threadid_t exception_state_master;
+	logic exception_fence;
 	vptr_t waiting_pc[n_threads];
 
 	always_ff @(posedge clk) begin
@@ -473,9 +474,10 @@ module top
 			tlbwrite_ppn <= tlwb_r2[7:0];
 
 			// Maintain instruction order
+			exception_fence = (~exception_state_en || (exception_state_en && tlwb_thread == exception_state_master));
 			if (tlwb_pc == waiting_pc[tlwb_thread]) begin
-				// Commit instruction
-				if (tlwb_isvalid) begin
+				// Commit instruction if valid and passes the exception fence
+				if (tlwb_isvalid && exception_fence) begin
 					// Update PC
 					pc[tlwb_thread] <= pc[tlwb_thread] + 4;
 					waiting_pc[tlwb_thread] <= waiting_pc[tlwb_thread] + 4;
@@ -502,11 +504,14 @@ module top
 					if (tlwb_flag_tlbwrite == tlbwrite_signal::dtlb) dtlb_wen <= 1;
 
 					// IRET
-					if (tlwb_flag_iret)
+					if (tlwb_flag_iret) begin
 						pc[tlwb_thread] <= rm0[tlwb_thread];
+						exception_state_en <= 0;
+						rm4[tlwb_thread] <= 0;
+					end
 				end
 
-				// Retry waiting PC if execution has not been valid
+				// Retry waiting PC if execution has not been valid or has not passed the exception fence
 				else begin
 					pc[tlwb_thread] <= waiting_pc[tlwb_thread];
 				end
