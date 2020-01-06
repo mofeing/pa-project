@@ -206,6 +206,8 @@ module top
 	logic 				tlwb_flag_branch;
 	logic 				tlwb_flag_iret;
 	common::tlbwrite_t	tlwb_flag_tlbwrite;
+	logic				tlwb_flag_store;
+	logic				tlwb_flag_isbyte;
 
 	// Scheduler - Exception Handler
 	logic exc_en;
@@ -409,6 +411,8 @@ module top
 		.wb_flag_branch(tlwb_flag_branch),
 		.wb_flag_iret(tlwb_flag_iret),
 		.wb_flag_tlbwrite(tlwb_flag_tlbwrite),
+		.wb_flag_store(tlwb_flag_store),
+		.wb_flag_isbyte(tlwb_flag_isbyte),
 
 		.stalled(stalled),
 
@@ -455,6 +459,11 @@ module top
 			end
 		end
 		else begin
+			store_en <= 0;
+			store_addr <= tlwb_data[19:0];
+			store_isbyte <= tlwb_flag_isbyte;
+			store_data <= tlwb_r2;
+
 			// Maintain instruction order
 			if (tlwb_pc == waiting_pc[tlwb_thread]) begin
 				// Commit instruction
@@ -476,7 +485,9 @@ module top
 						pc[tlwb_thread] <= tlwb_data;
 					end
 
-					// TODO Store
+					// Store
+					if (tlwb_flag_store)
+						store_en <= 1;
 
 					// TODO TLBWRITE
 					// if (tlwb_flag_tlbwrite == tlbwrite_signal::itlb) itlb_wen <= 1;

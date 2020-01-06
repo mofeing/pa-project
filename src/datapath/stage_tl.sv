@@ -46,6 +46,8 @@ module stage_tl
 	output logic 				wb_flag_branch,
 	output logic 				wb_flag_iret,
 	output common::tlbwrite_t	wb_flag_tlbwrite,
+	output logic				wb_flag_store,
+	output logic				wb_flag_isbyte,
 
 	// Stalled bits
 	output logic[n_threads-1:0]	stalled,
@@ -103,6 +105,8 @@ module stage_tl
 		wb_flag_branch <= ex_flag_branch;
 		wb_flag_iret <= ex_flag_iret;
 		wb_flag_tlbwrite <= ex_flag_tlbwrite;
+		wb_flag_store <= ex_flag_store;
+		wb_flag_isbyte <= ex_flag_isbyte;
 	end
 
 	// Instantiate D-TLB

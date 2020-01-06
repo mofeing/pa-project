@@ -89,6 +89,7 @@ module decoder
 				flag_mem = 1;
 				flag_store = 1;
 				flag_isbyte = 1;
+				r2 = dst;
 			end
 			opcode::stw : begin
 				alu_func = func::add;
@@ -96,6 +97,7 @@ module decoder
 				b = mux_b::immediate;
 				flag_mem = 1;
 				flag_store = 1;
+				r2 = dst;
 			end
 			opcode::beq : begin
 				alu_func = func::add;
