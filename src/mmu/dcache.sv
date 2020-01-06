@@ -97,6 +97,7 @@ module dcache_directmap
 			end
 
 			// Receive from memory
+			mem_req_wen <= 0;
 			if (mem_rec_en && entry[rec_idx].req_tag == rec_tag) begin
 				// Commit cacheline to memory if dirty
 				if (entry[rec_idx].valid && entry[rec_idx].dirty) begin
