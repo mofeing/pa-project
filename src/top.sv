@@ -500,6 +500,10 @@ module top
 					// TLBWRITE
 					if (tlwb_flag_tlbwrite == tlbwrite_signal::itlb) itlb_wen <= 1;
 					if (tlwb_flag_tlbwrite == tlbwrite_signal::dtlb) dtlb_wen <= 1;
+
+					// IRET
+					if (tlwb_flag_iret)
+						pc[tlwb_thread] <= rm0[tlwb_thread];
 				end
 
 				// Retry waiting PC if execution has not been valid
