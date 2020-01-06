@@ -3,7 +3,6 @@
 `include "datapath/stage_id.sv"
 `include "datapath/stage_ex.sv"
 `include "datapath/stage_tl.sv"
-`include "datapath/stage_wb.sv"
 `include "mmu/controller.sv"
 `include "mmu/memory.sv"
 `include "mmu/bus.sv"
@@ -17,8 +16,6 @@ module top
 );
 	// Thread state
 	vptr_t pc [n_threads];
-	logic[n_threads-1:0] wb_pc_en;
-	vptr_t wb_pc_data;
 
 	word_t rm0 [n_threads];
 	word_t rm1 [n_threads];
@@ -29,12 +26,6 @@ module top
 	logic[n_threads-1:0]	regfile_wen;
 	regid_t	regfile_addr;
 	word_t	regfile_data;
-
-	// NOTE initial simulation is all in supervisor mode
-	word_t fake_rm4[n_threads];
-	always_comb
-		for (int i = 0; i < n_threads; i++)
-			fake_rm4[i] = 1;
 
 	// Memory
 	/// i-cache <-> controller
@@ -442,63 +433,19 @@ module top
 		.store_data(store_data)
 	);
 
-	stage_wb stage_wb_inst (
-		.clk(clk),
-		.rst(rst),
-
-		// TLWB connection
-		.tl_thread(tlwb_thread),
-		.tl_isvalid(tlwb_isvalid),
-		.tl_itlb_miss(tlwb_itlb_miss),
-		.tl_dtlb_miss(tlwb_dtlb_miss),
-		.tl_dst(tlwb_dst),
-		.tl_pc(tlwb_pc),
-		.tl_r2(tlwb_r2),
-		.tl_data(tlwb_data),
-		.tl_isequal(tlwb_isequal),
-		.tl_mul(tlwb_mul),
-		.tl_flag_mul(tlwb_flag_mul),
-		.tl_flag_reg(tlwb_flag_reg),
-		.tl_flag_jump(tlwb_flag_jump),
-		.tl_flag_branch(tlwb_flag_branch),
-		.tl_flag_iret(tlwb_flag_iret),
-		.tl_flag_tlbwrite(tlwb_flag_tlbwrite),
-
-		// Special registers and PC
-		// .pc(pc),
-		.pc_en(wb_pc_en),
-		.pc_data(wb_pc_data),
-		// .rm0(rm0),
-		// .rm1(rm1),
-		// .rm2(rm2),
-		// .rm4(rm4),
-
-		// Register file
-		.regfile_wen(regfile_wen),
-		.regfile_addr(regfile_addr),
-		.regfile_data(regfile_data),
-
-		// TLB
-		// .itlb_wen(itlb_wen),
-		// .itlb_vpn(itlb_vpn),
-		// .itlb_ppn(itlb_ppn),
-		// .dtlb_wen(dtlb_wen),
-		// .dtlb_vpn(dtlb_vpn),
-		// .dtlb_ppn(dtlb_ppn),
-
-		// Scheduler
-		.exc_en(exc_en),
-		.exc_thread(exc_thread)
-	);
+	// logic exception_state_en;
+	// threadid_t exception_state_master;
+	vptr_t waiting_pc[n_threads];
 
 	always_ff @(posedge clk) begin
-	 	if (rst) begin
+		if (rst) begin
 			for (int i = 0; i < n_threads; i++) begin
 				pc[i] <= 32'h 1000;
+				waiting_pc[i] <= 32'h 1000;
 				rm0[i] <= 0;
 				rm1[i] <= 0;
 				rm2[i] <= 0;
-				rm4[i] <= 0;
+				rm4[i] <= 1; // NOTE Fake rm4
 				stalled[i] = 0;
 				for (int j = 0; j < 32; j++)
 					regfile[i][j] <= 0;
@@ -508,14 +455,38 @@ module top
 			end
 		end
 		else begin
-			for (int i = 0; i < n_threads; i++) begin
-				if (regfile_wen[i] == 1)
-					regfile[i][regfile_addr] <= regfile_data;
+			// Maintain instruction order
+			if (tlwb_pc == waiting_pc[tlwb_thread]) begin
+				// Commit instruction
+				if (tlwb_isvalid) begin
+					// Update PC
+					pc[tlwb_thread] <= pc[tlwb_thread] + 4;
+					waiting_pc[tlwb_thread] <= waiting_pc[tlwb_thread] + 4;
 
-				// if (wb_pc_en[i] == 1)
-				// 	pc[i] <= wb_pc_data + 4;
-				// else if (ifid_thread == i[2:0])
-				// 	pc[i] <= pc[i] + 4;
+					// Write to register file (ALU, MUL, LD)
+					if (tlwb_flag_reg)
+						regfile[tlwb_thread][tlwb_dst] <= (tlwb_flag_mul) ? tlwb_mul : tlwb_data;
+
+					// Jump/branch
+					if (tlwb_flag_jump && (~tlwb_flag_branch || (tlwb_flag_branch && tlwb_isequal))) begin
+						// $display("[top] jump!, sum=%d", regfile[tlwb_thread][10]);
+						if (tlwb_flag_branch)
+							$display("[top] branch!, sum=%d", regfile[tlwb_thread][10]);
+						waiting_pc[tlwb_thread] <= tlwb_data;
+						pc[tlwb_thread] <= tlwb_data;
+					end
+
+					// TODO Store
+
+					// TODO TLBWRITE
+					// if (tlwb_flag_tlbwrite == tlbwrite_signal::itlb) itlb_wen <= 1;
+					// if (tlwb_flag_tlbwrite == tlbwrite_signal::dtlb) dtlb_wen <= 1;
+				end
+
+				// Retry waiting PC if execution has not been valid
+				else begin
+					pc[tlwb_thread] <= waiting_pc[tlwb_thread];
+				end
 			end
 		end
 	end
