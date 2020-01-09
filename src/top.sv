@@ -480,9 +480,6 @@ module top
 
 					// Jump/branch
 					if (tlwb_flag_jump && (~tlwb_flag_branch || (tlwb_flag_branch && tlwb_isequal))) begin
-						// $display("[top] jump!, sum=%d", regfile[tlwb_thread][10]);
-						if (tlwb_flag_branch)
-							$display("[top] branch!, sum=%d", regfile[tlwb_thread][10]);
 						waiting_pc[tlwb_thread] <= tlwb_data;
 						pc[tlwb_thread] <= tlwb_data;
 					end
