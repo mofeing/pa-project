@@ -34,11 +34,15 @@ module stage_if
 	input ppn_t 				tlbwrite_ppn,
 
 	// PC of threads (speculative increment of a word outside this module)
-	input vptr_t[n_threads-1:0]		pc,
+	// input vptr_t[n_threads-1:0]		pc,
+	input vptr_t 		pc,
 
 	// Exception handler
 	input logic			exc_en,
-	input threadid_t	exc_thread
+	input threadid_t	exc_thread,
+
+	// Scheduler
+	output threadid_t scheduler_thread
 );
 	// Flip-Flop registers
 	logic		ff_itlb_miss;
@@ -54,13 +58,14 @@ module stage_if
 		id_icache_miss <= ff_icache_miss;
 		id_pc <= ff_pc;
 		id_instruction <= ff_instruction;
+		id_thread <= ff_thread;
 		id_rm4 <= {31'b0, mode[ff_thread]};
 		mem_req_ren <= ff_mem_req_ren;
 		mem_req_addr <= ff_mem_req_addr;
 	end
 
 	// NOTE Scheduler's output is already flip-floped for "thread" signal
-	assign id_thread = ff_thread;
+	assign scheduler_thread = ff_thread;
 
 	// Internal signals
 	pptr_t 		pc_physical;
@@ -74,7 +79,8 @@ module stage_if
 		.exc_en(exc_en),
 		.exc_thread(exc_thread)
 	);
-	assign ff_pc = pc[ff_thread];
+	// assign ff_pc = pc[ff_thread];
+	assign ff_pc = pc;
 
 	// Instantiate I-TLB
 	itlb itlb_inst (
