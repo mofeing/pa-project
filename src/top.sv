@@ -23,9 +23,7 @@ module top
 	word_t rm4 [n_threads];
 	logic [n_threads-1:0] stalled;
 	word_t[n_threads-1:0][32-1:0] regfile;
-	logic[n_threads-1:0]	regfile_wen;
-	regid_t	regfile_addr;
-	word_t	regfile_data;
+	threadid_t scheduler_thread;
 
 	// Memory
 	/// i-cache <-> controller
@@ -250,7 +248,8 @@ module top
 		.tlbwrite_ppn(), // NOTE initial simulation is all in supervisor mode
 
 		// PC of threads (speculative increment of a word outside this module)
-		.pc({pc[0], pc[1], pc[2], pc[3], pc[4], pc[5], pc[6], pc[7]}),
+		.pc(pc[scheduler_thread]),
+		.scheduler_thread(scheduler_thread),
 
 		// Exception handler
 		.exc_en(exc_en),
@@ -464,12 +463,15 @@ module top
 			store_isbyte <= tlwb_flag_isbyte;
 			store_data <= tlwb_r2;
 
+			// PC speculation
+			if (scheduler_thread != tlwb_thread)
+				pc[scheduler_thread] <= pc[scheduler_thread] + 4;
+
 			// Maintain instruction order
 			if (tlwb_pc == waiting_pc[tlwb_thread]) begin
 				// Commit instruction
 				if (tlwb_isvalid) begin
-					// Update PC
-					pc[tlwb_thread] <= pc[tlwb_thread] + 4;
+					// Update waiting PC
 					waiting_pc[tlwb_thread] <= waiting_pc[tlwb_thread] + 4;
 
 					// Write to register file (ALU, MUL, LD)
