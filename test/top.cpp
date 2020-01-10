@@ -37,10 +37,13 @@ int main(int argc, char const *argv[])
 	tick();
 	rst = 0;
 
-	auto cycles = 0;
-	constexpr auto max_cycles = 8500;
-	while (!std::all_of(&mod->top__DOT__pc[0], &mod->top__DOT__pc[8], [](IData pci) { return pci == 0x101C; }) && cycles++ < max_cycles)
+	auto cycles = -4; // NOTE first instruction to propagate lasts 4 cycles
+	constexpr auto max_cycles = 20000;
+	auto &pc = mod->top__DOT__waiting_pc;
+
+	while (!Verilated::gotFinish() && cycles++ < max_cycles)
 		tick();
+	tick();
 
 	mod->final();
 	tracer->close();

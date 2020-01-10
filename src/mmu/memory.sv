@@ -26,7 +26,7 @@ module memory
 			integer file;
 			word_t[3:0] buffer;
 
-			file = $fopen("programs/buffer_sum.bin", "r");
+			file = $fopen(filename, "r");
 			$fread(data, file);
 			$fclose(file);
 
@@ -51,4 +51,13 @@ module memory
 		end
 	end
 
+	string filename;
+	initial begin
+		if ($value$plusargs("filename=%s", filename) == 1'b0) begin
+			$display("ERROR: +filename not defined");
+			$finish;
+		end
+		else
+			$display("[*] filename=%s", filename);
+	end
 endmodule

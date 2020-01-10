@@ -500,4 +500,24 @@ module top
 			end
 		end
 	end
+
+	vptr_t end_pc;
+	initial begin
+		if ($value$plusargs("end=%x", end_pc) == 1'b0) begin
+			$display("ERROR: +end not defined");
+			$finish;
+		end
+		else
+			$display("[*] end=%x", end_pc);
+	end
+
+	always_ff @(posedge clk) begin : check_finish
+		integer finished = 0;
+		foreach (waiting_pc[i])
+			if (waiting_pc[i] == end_pc)
+				finished++;
+
+		if (finished == n_threads)
+			$finish;
+	end
 endmodule
