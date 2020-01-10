@@ -129,7 +129,7 @@ module stage_tl
 	);
 
 	// Instantiate D-CACHE
-	dcache_directmap dcache_inst(
+	dcache_setassociative dcache_inst(
 		.clk(clk),
 		.rst(rst),
 
