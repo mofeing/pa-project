@@ -8,6 +8,7 @@ typedef struct packed {
 	logic waiting;
 	tag_t req_tag;
 	logic dirty;
+	integer age;
 } dcache_entry_t;
 
 typedef struct packed {
@@ -222,6 +223,9 @@ module dcache_setassociative
 			foreach (subscriber[i]) subscriber[i].valid = 0;
 		end
 		else begin
+			// Update age of entries
+			foreach (entry[i,j]) entry[i][j].age <= entry[i][j].age + 1;
+
 			// TODO Bypass conditions for store
 
 			// Commit store to cacheline after passing the committer
@@ -271,6 +275,7 @@ module dcache_setassociative
 					entry[rec_idx][j].data <= mem_rec_cacheline;
 					entry[rec_idx][j].waiting <= 0;
 					entry[rec_idx][j].dirty <= 0;
+					entry[rec_idx][j].age <= 0;
 
 					// Notify stalled threads
 					// NOTE Notifies threads waiting for the same set as there are threads waiting for to load/store (and miss) in that set
@@ -288,6 +293,8 @@ module dcache_setassociative
 				logic avail_found = 0;
 				logic already_req = 0;
 				int j;
+				int oldest_age = 0;
+				int oldest_j = 0;
 
 				// Check that cacheline is not already requested
 				for (j = 0; j < ENTRIES_PER_SET; j++)
@@ -296,12 +303,13 @@ module dcache_setassociative
 						break;
 					end
 
-				// Find available entry in "req_idx" set
+				// Find oldest available entry in "req_idx" set
 				// NOTE Can only request memory if there is an entry that is not waiting for memory
 				for (j = 0; j < ENTRIES_PER_SET; j++)
-					if (~entry[req_idx][j].waiting) begin
+					if (~entry[req_idx][j].waiting && entry[req_idx][j].age >= oldest_age) begin
 						avail_found = 1;
-						break;
+						oldest_j = j;
+						oldest_age = entry[req_idx][j].age;
 					end
 
 				if (~already_req && avail_found) begin
@@ -309,8 +317,8 @@ module dcache_setassociative
 					mem_req_raddr <= {req_tag, req_idx, {$bits(byte_offset_t){1'b0}}};
 
 					// Set cacheline on waiting state
-					entry[req_idx][j].waiting <= 1;
-					entry[req_idx][j].req_tag <= req_tag;
+					entry[req_idx][oldest_j].waiting <= 1;
+					entry[req_idx][oldest_j].req_tag <= req_tag;
 				end
 
 				// Stall thread
