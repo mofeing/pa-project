@@ -217,6 +217,11 @@ module top
 	pptr_t	store_addr;
 	word_t	store_data;
 
+	// TLB write
+	logic itlb_wen;
+	logic dtlb_wen;
+	vpn_t tlbwrite_vpn;
+	ppn_t tlbwrite_ppn;
 
 	// Stages
 	stage_if stage_if_inst(
@@ -243,9 +248,9 @@ module top
 
 		// TLB
 		.mode({rm4[0][0], rm4[1][0], rm4[2][0], rm4[3][0], rm4[4][0], rm4[5][0], rm4[6][0], rm4[7][0]}), // NOTE initial simulation is all in supervisor mode
-		.tlbwrite_en(0), // NOTE initial simulation is all in supervisor mode
-		.tlbwrite_vpn(), // NOTE initial simulation is all in supervisor mode
-		.tlbwrite_ppn(), // NOTE initial simulation is all in supervisor mode
+		.tlbwrite_en(itlb_wen),
+		.tlbwrite_vpn(tlbwrite_vpn),
+		.tlbwrite_ppn(tlbwrite_ppn),
 
 		// PC of threads (speculative increment of a word outside this module)
 		.pc(pc[scheduler_thread]),
@@ -425,10 +430,9 @@ module top
 		.mem_rec_addr(ctr_dcache_rec_addr),
 		.mem_rec_cacheline(ctr_dcache_rec_cacheline),
 
-		// .write_en(write_en),
-		// .write_vpn(write_vpn),
-		// .write_ppn(write_ppn),
-		// .mode(mode),
+		.tlbwrite_en(dtlb_wen),
+		.tlbwrite_vpn(tlbwrite_vpn),
+		.tlbwrite_ppn(tlbwrite_ppn),
 
 		.store_en(store_en),
 		.store_isbyte(store_isbyte),
@@ -436,8 +440,10 @@ module top
 		.store_data(store_data)
 	);
 
-	// logic exception_state_en;
-	// threadid_t exception_state_master;
+	logic exception_state_en;
+	threadid_t exception_state_master;
+	logic exception_fence;
+	logic exception_detected;
 	vptr_t waiting_pc[n_threads];
 
 	always_ff @(posedge clk) begin
@@ -462,15 +468,21 @@ module top
 			store_addr <= tlwb_data[19:0];
 			store_isbyte <= tlwb_flag_isbyte;
 			store_data <= tlwb_r2;
+			itlb_wen <= 0;
+			dtlb_wen <= 0;
+			tlbwrite_vpn <= tlwb_data[19:0];
+			tlbwrite_ppn <= tlwb_r2[7:0];
 
 			// PC speculation
 			if (scheduler_thread != tlwb_thread)
 				pc[scheduler_thread] <= pc[scheduler_thread] + 4;
 
 			// Maintain instruction order
+			exception_fence = (~exception_state_en || (exception_state_en && tlwb_thread == exception_state_master));
+			exception_detected = tlwb_itlb_miss && tlwb_dtlb_miss;
 			if (tlwb_pc == waiting_pc[tlwb_thread]) begin
-				// Commit instruction
-				if (tlwb_isvalid) begin
+				// Commit instruction if valid and passes the exception fence
+				if (tlwb_isvalid && exception_fence) begin
 					// Update waiting PC
 					waiting_pc[tlwb_thread] <= waiting_pc[tlwb_thread] + 4;
 
@@ -488,14 +500,39 @@ module top
 					if (tlwb_flag_store)
 						store_en <= 1;
 
-					// TODO TLBWRITE
-					// if (tlwb_flag_tlbwrite == tlbwrite_signal::itlb) itlb_wen <= 1;
-					// if (tlwb_flag_tlbwrite == tlbwrite_signal::dtlb) dtlb_wen <= 1;
+					// TLBWRITE
+					if (tlwb_flag_tlbwrite == tlbwrite_signal::itlb) itlb_wen <= 1;
+					if (tlwb_flag_tlbwrite == tlbwrite_signal::dtlb) dtlb_wen <= 1;
+
+					// IRET
+					if (tlwb_flag_iret) begin
+						pc[tlwb_thread] <= rm0[tlwb_thread];
+						exception_state_en <= 0;
+						rm4[tlwb_thread] <= 0;
+					end
 				end
 
-				// Retry waiting PC if execution has not been valid
+				// Retry waiting PC if execution has not been valid or has not passed the exception fence
 				else begin
 					pc[tlwb_thread] <= waiting_pc[tlwb_thread];
+
+					// Jump to exception handler if not yet in exception state
+					if (~exception_state_en && exception_detected) begin
+						exception_state_en <= 1;
+						exception_state_master <= tlwb_thread;
+						pc[tlwb_thread] <= exchandler_pc;
+						waiting_pc[tlwb_thread] <= exchandler_pc;
+
+						rm0[tlwb_thread] <= tlwb_pc;
+						if (tlwb_itlb_miss) begin
+							rm1[tlwb_thread] <= tlwb_pc;
+							rm2[tlwb_thread] <= exception::itlb_miss;
+						end else if (tlwb_dtlb_miss) begin
+							rm1[tlwb_thread] <= tlwb_data;
+							rm2[tlwb_thread] <= exception::dtlb_miss;
+						end
+						rm4[tlwb_thread] <= 1;
+					end
 				end
 			end
 		end

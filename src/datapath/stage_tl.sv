@@ -63,9 +63,9 @@ module stage_tl
 	input	cacheline_t mem_rec_cacheline,
 
 	// TLBWRITE interface
-	input	logic	write_en,
-	input	vpn_t	write_vpn,
-	input	ppn_t	write_ppn,
+	input	logic	tlbwrite_en,
+	input	vpn_t	tlbwrite_vpn,
+	input	ppn_t	tlbwrite_ppn,
 
 	// STORE interface
 	input	logic	store_en,
@@ -120,9 +120,9 @@ module stage_tl
 
 		.miss(ff_dtlb_miss),
 
-		.write_en(write_en),
-		.write_vpn(write_vpn),
-		.write_ppn(write_ppn),
+		.write_en(tlbwrite_en),
+		.write_vpn(tlbwrite_vpn),
+		.write_ppn(tlbwrite_ppn),
 
 		.is_valid(ex_isvalid),
 		.flag_mem(ex_flag_mem)
