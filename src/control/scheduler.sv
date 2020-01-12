@@ -25,36 +25,28 @@ module scheduler_priority
 	input				clk,
 	input				rst,
 
-	output	threadid_t	thread,
-	input	logic		stalled[n_threads-1:0],
+	output	threadid_t					thread,
+	input	logic[n_threads-1:0]		stalled,
 
 	input logic			exc_en,
 	input threadid_t	exc_thread
 );
-	threadid_t guess;
-	integer i;
-
-	// Start first thread on reset
 	always @(posedge clk) begin
-		if (rst)
-			guess = 0;
+		if (rst) thread <= 0;
 		else begin
 			if (~exc_en) begin
 				// Guess next thread is not stalled
-				thread = guess;
+				thread <= (thread + 1) % n_threads;
 
 				// Skip to next non-stalled thread
-				for (i = n_threads-1; i >= 1; i = i - 1) begin
-					integer j = (i + guess) % n_threads;
-					if (stalled[j] == 0)
-						thread = j;
-				end
-
-				// Update next guess
-				guess = (thread + 1) % n_threads;
+				for (int i = 1; i < n_threads; i++)
+					if (~stalled[thread + i % n_threads]) begin
+						thread <= (thread + i) % n_threads;
+						break;
+					end
 			end
 			else
-				thread = exc_thread;
+				thread <= exc_thread;
 		end
 	end
 endmodule
