@@ -39,6 +39,10 @@ module stage_id
 	output common::tlbwrite_t	ex_flag_tlbwrite,
 	output word_t				ex_rm4,
 
+	// Invalidate thread history
+	input	logic		wb_invalidate_en,
+	input	threadid_t	wb_invalidate_thread,
+
 	// Register File
 	input	word_t[n_threads-1:0][32-1:0]	regfile
 );
@@ -122,6 +126,9 @@ module stage_id
 		.icache_miss(if_icache_miss),
 
 		.instr(if_instruction),
+
+		.invalidate_en(wb_invalidate_en),
+		.invalidate_thread(wb_invalidate_thread),
 
 		.isvalid(ff_isvalid)
 	);

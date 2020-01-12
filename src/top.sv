@@ -296,6 +296,10 @@ module top
 		.ex_flag_tlbwrite(idex_flag_tlbwrite),
 		.ex_rm4(idex_rm4),
 
+		// Invalidate thread history
+		.wb_invalidate_en(wb_invalidate_en),
+		.wb_invalidate_thread(wb_invalidate_thread),
+
 		// Register file
 		.regfile(regfile)
 	);
@@ -445,6 +449,8 @@ module top
 	logic exception_fence;
 	logic exception_detected;
 	vptr_t waiting_pc[n_threads];
+	logic wb_invalidate_en;
+	threadid_t wb_invalidate_thread;
 
 	always_ff @(posedge clk) begin
 		if (rst) begin
@@ -472,6 +478,7 @@ module top
 			dtlb_wen <= 0;
 			tlbwrite_vpn <= tlwb_data[19:0];
 			tlbwrite_ppn <= tlwb_r2[7:0];
+			wb_invalidate_en <= 0;
 
 			// PC speculation
 			if (scheduler_thread != tlwb_thread)
@@ -515,24 +522,8 @@ module top
 				// Retry waiting PC if execution has not been valid or has not passed the exception fence
 				else begin
 					pc[tlwb_thread] <= waiting_pc[tlwb_thread];
-
-					// Jump to exception handler if not yet in exception state
-					if (~exception_state_en && exception_detected) begin
-						exception_state_en <= 1;
-						exception_state_master <= tlwb_thread;
-						pc[tlwb_thread] <= exchandler_pc;
-						waiting_pc[tlwb_thread] <= exchandler_pc;
-
-						rm0[tlwb_thread] <= tlwb_pc;
-						if (tlwb_itlb_miss) begin
-							rm1[tlwb_thread] <= tlwb_pc;
-							rm2[tlwb_thread] <= exception::itlb_miss;
-						end else if (tlwb_dtlb_miss) begin
-							rm1[tlwb_thread] <= tlwb_data;
-							rm2[tlwb_thread] <= exception::dtlb_miss;
-						end
-						rm4[tlwb_thread] <= 1;
-					end
+					wb_invalidate_en <= 1;
+					wb_invalidate_thread <= tlwb_thread;
 				end
 			end
 		end

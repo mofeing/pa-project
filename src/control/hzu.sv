@@ -30,6 +30,9 @@ module hzu
 
 	input	instr_t		instr,
 
+	input	logic		invalidate_en,
+	input	threadid_t	invalidate_thread,
+
 	output	logic		isvalid
 );
 	history_entry_t history [N];
@@ -59,6 +62,13 @@ module hzu
 			foreach (history[i])
 				history[i].valid = 0;
 		else begin
+			// Invalidate thread history
+			if (invalidate_en) begin
+				foreach (history[i])
+					if (history[i].thread == invalidate_thread)
+						history[i].valid = 0;
+			end
+
 			// Update history
 			history[0].valid <= isvalid;
 			history[0].thread <= thread;
