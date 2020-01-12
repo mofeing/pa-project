@@ -41,10 +41,12 @@ package opcode;
 		stw = 'h13,
 		beq = 'h30,
 		jump = 'h31,
-		mov = 'h14,
-		tlbwrite = 'h32,
+		mov_rm1 = 'h14,
+		mov_rm2 = 'h15,
 		iret = 'h33,
-		addi = 'h34
+		addi = 'h34,
+		tlbwrite_i = 'h35,
+		tlbwrite_d = 'h36
 	} opcode_t /* verilator public */;
 endpackage
 

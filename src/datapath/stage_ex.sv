@@ -77,7 +77,7 @@ module stage_ex
 		tl_flag_jump <= id_flag_jump;
 		tl_flag_branch <= id_flag_branch;
 		tl_flag_iret <= id_flag_iret;
-		tl_flag_tlbwrite <= tlbwrite_signal::off;
+		tl_flag_tlbwrite <= id_flag_tlbwrite;
 		tl_isequal <= id_r1 == id_r2;
 		tl_data <= ff_data;
 		tl_mul <= ff_mul;

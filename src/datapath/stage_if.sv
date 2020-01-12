@@ -62,6 +62,11 @@ module stage_if
 		id_rm4 <= {31'b0, mode[ff_thread]};
 		mem_req_ren <= ff_mem_req_ren;
 		mem_req_addr <= ff_mem_req_addr;
+
+		// NOTE Fix for not starting with an exception on the first cycle
+		if (rst) begin
+			id_itlb_miss <= 0;
+		end
 	end
 
 	// NOTE Scheduler's output is already flip-floped for "thread" signal
@@ -86,7 +91,7 @@ module stage_if
 	itlb itlb_inst (
 		.clk(clk),
 		.rst(rst),
-		.mode(mode[ff_thread]),
+		.mode(mode[ff_thread]), // NOTE quick fix
 		.vaddr(ff_pc),
 		.paddr(pc_physical),
 		.miss(ff_itlb_miss),

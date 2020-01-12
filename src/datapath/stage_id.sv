@@ -44,6 +44,8 @@ module stage_id
 	input	threadid_t	wb_invalidate_thread,
 
 	// Register File
+	input	word_t[n_threads-1:0]			rm1,
+	input	word_t[n_threads-1:0]			rm2,
 	input	word_t[n_threads-1:0][32-1:0]	regfile
 );
 	// Flip-Flop registers
@@ -68,6 +70,8 @@ module stage_id
 	// Internal signals
 	regid_t r1;
 	regid_t r2;
+	logic use_rm1;
+	logic use_rm2;
 
 	always_ff @(posedge clk) begin
 		ex_thread <= if_thread;
@@ -91,6 +95,11 @@ module stage_id
 		ex_flag_iret <= ff_flag_iret;
 		ex_flag_tlbwrite <= ff_flag_tlbwrite;
 		ex_rm4 <= if_rm4;
+
+		if (use_rm1)
+			ex_r1 <= rm1[if_thread];
+		else if (use_rm2)
+			ex_r1 <= rm2[if_thread];
 	end
 
 	// Intance DECODER
@@ -104,6 +113,8 @@ module stage_id
 		.a(ff_a),
 		.b(ff_b),
 		.alu_func(ff_alu_func),
+		.use_rm1(use_rm1),
+		.use_rm2(use_rm2),
 
 		.flag_mem(ff_flag_mem),
 		.flag_store(ff_flag_store),

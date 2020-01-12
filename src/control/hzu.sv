@@ -9,11 +9,11 @@ typedef struct packed {
 } history_entry_t;
 
 function logic has_src2 (common::opcode_t op);
-	return (op == opcode::add) || (op == opcode::sub) || (op == opcode::mul) || (op == opcode::beq) || (op == opcode::tlbwrite);
+	return (op == opcode::add) || (op == opcode::sub) || (op == opcode::mul) || (op == opcode::beq) || (op == opcode::tlbwrite_i) || (op == opcode::tlbwrite_d);
 endfunction
 
 function logic has_dst (common::opcode_t op);
-	return (op == opcode::add) || (op == opcode::sub) || (op == opcode::mul) || (op == opcode::ldb) || (op == opcode::ldw) || (op == opcode::mov) || (op == opcode::addi);
+	return (op == opcode::add) || (op == opcode::sub) || (op == opcode::mul) || (op == opcode::ldb) || (op == opcode::ldw) || (op == opcode::mov_rm1) || (op == opcode::mov_rm2) || (op == opcode::addi);
 endfunction
 
 module hzu
@@ -47,9 +47,9 @@ module hzu
 			foreach (history[i])
 				if (history[i].valid && history[i].thread == thread && (
 					// dst and src1 do not clash
-					(has_dst(history[i].instr.op) && history[0].instr.fields.r.src1 == history[i].instr.fields.r.dst)
+					(has_dst(history[i].instr.op) && instr.fields.r.src1 == history[i].instr.fields.r.dst)
 					// dst and src2 do not clash
-					|| (has_dst(history[i].instr.op) && issrc2kind && history[0].instr.fields.r.src2 == history[i].instr.fields.r.dst)
+					|| (has_dst(history[i].instr.op) && issrc2kind && instr.fields.r.src2 == history[i].instr.fields.r.dst)
 				)) begin
 					isvalid = 0;
 					break;

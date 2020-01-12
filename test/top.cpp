@@ -57,7 +57,6 @@ int main(int argc, char const *argv[])
 
 	while (!Verilated::gotFinish() && cycles++ < max_cycles)
 		tick();
-	tick();
 
 	// Print profile
 	std::cout << "Total cycles = " << cycles << std::endl;

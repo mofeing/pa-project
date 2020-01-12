@@ -17,10 +17,10 @@ module top
 	// Thread state
 	vptr_t pc [n_threads];
 
-	word_t rm0 [n_threads];
-	word_t rm1 [n_threads];
-	word_t rm2 [n_threads];
-	word_t rm4 [n_threads];
+	word_t[n_threads-1:0] rm0;
+	word_t[n_threads-1:0] rm1;
+	word_t[n_threads-1:0] rm2;
+	word_t[n_threads-1:0] rm4;
 	logic [n_threads-1:0] stalled;
 	word_t[n_threads-1:0][32-1:0] regfile;
 	threadid_t scheduler_thread;
@@ -247,7 +247,7 @@ module top
 		.mem_req_addr(ctr_icache_req_raddr),
 
 		// TLB
-		.mode({rm4[0][0], rm4[1][0], rm4[2][0], rm4[3][0], rm4[4][0], rm4[5][0], rm4[6][0], rm4[7][0]}), // NOTE initial simulation is all in supervisor mode
+		.mode({rm4[7][0], rm4[6][0], rm4[5][0], rm4[4][0], rm4[3][0], rm4[2][0], rm4[1][0], rm4[0][0]}), // NOTE initial simulation is all in supervisor mode
 		.tlbwrite_en(itlb_wen),
 		.tlbwrite_vpn(tlbwrite_vpn),
 		.tlbwrite_ppn(tlbwrite_ppn),
@@ -272,6 +272,8 @@ module top
 		.if_instruction(ifid_instruction),
 		.if_thread(ifid_thread),
 		.if_rm4(ifid_rm4),
+		.rm1(rm1),
+		.rm2(rm2),
 
 		// EX connection
 		.ex_thread(idex_thread),
@@ -452,6 +454,11 @@ module top
 	logic wb_invalidate_en;
 	threadid_t wb_invalidate_thread;
 
+	always_comb begin
+		exception_fence = (~exception_state_en || (exception_state_en && tlwb_thread == exception_state_master));
+		exception_detected = tlwb_itlb_miss || tlwb_dtlb_miss;
+	end
+
 	always_ff @(posedge clk) begin
 		if (rst) begin
 			for (int i = 0; i < n_threads; i++) begin
@@ -460,7 +467,9 @@ module top
 				rm0[i] <= 0;
 				rm1[i] <= 0;
 				rm2[i] <= 0;
-				rm4[i] <= 1; // NOTE Fake rm4
+				rm4[i] <= 0;
+				if ($test$plusargs("supervisor") == 1'b1)
+					rm4[i] <= 1;
 				stalled[i] = 0;
 				for (int j = 0; j < 32; j++)
 					regfile[i][j] <= 0;
@@ -481,12 +490,10 @@ module top
 			wb_invalidate_en <= 0;
 
 			// PC speculation
-			if (scheduler_thread != tlwb_thread)
+			if (exception_fence)
 				pc[scheduler_thread] <= pc[scheduler_thread] + 4;
 
 			// Maintain instruction order
-			exception_fence = (~exception_state_en || (exception_state_en && tlwb_thread == exception_state_master));
-			exception_detected = tlwb_itlb_miss && tlwb_dtlb_miss;
 			if (tlwb_pc == waiting_pc[tlwb_thread]) begin
 				// Commit instruction if valid and passes the exception fence
 				if (tlwb_isvalid && exception_fence) begin
@@ -514,8 +521,11 @@ module top
 					// IRET
 					if (tlwb_flag_iret) begin
 						pc[tlwb_thread] <= rm0[tlwb_thread];
+						waiting_pc[tlwb_thread] <= rm0[tlwb_thread];
 						exception_state_en <= 0;
 						rm4[tlwb_thread] <= 0;
+
+						exc_en <= 0;
 					end
 				end
 
@@ -524,6 +534,27 @@ module top
 					pc[tlwb_thread] <= waiting_pc[tlwb_thread];
 					wb_invalidate_en <= 1;
 					wb_invalidate_thread <= tlwb_thread;
+
+					// Jump to exception handler if not yet in exception state
+					if (~exception_state_en && exception_detected) begin
+						exception_state_en <= 1;
+						exception_state_master = tlwb_thread;
+						pc[tlwb_thread] <= exchandler_pc;
+						waiting_pc[tlwb_thread] <= exchandler_pc;
+
+						rm0[tlwb_thread] <= tlwb_pc;
+						if (tlwb_itlb_miss) begin
+							rm1[tlwb_thread] <= {12'b0, tlwb_pc[31:12]};
+							rm2[tlwb_thread] <= 0;
+						end else if (tlwb_dtlb_miss) begin
+							rm1[tlwb_thread] <= {12'b0, tlwb_data[31:12]};
+							rm2[tlwb_thread] <= 1;
+						end
+						rm4[tlwb_thread] <= 1;
+
+						exc_en <= 1;
+						exc_thread <= exception_state_master;
+					end
 				end
 			end
 		end

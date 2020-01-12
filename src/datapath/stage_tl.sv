@@ -86,6 +86,13 @@ module stage_tl
 	always_comb begin
 		ff_isvalid = (ex_flag_mem) ? (ex_isvalid && ~ff_dtlb_miss && ~dcache_miss) : ex_isvalid;
 		ff_data = (ex_flag_mem && ~ex_flag_store) ? dcache_data : ex_data;
+
+		// NOTE Pass faulting address to WB if D-TLB miss
+		if (ex_isvalid && ex_flag_mem && ex_rm4 == 0 && ff_dtlb_miss)
+			ff_data = ex_data;
+
+		if (ff_isvalid && ex_flag_store)
+			ff_data = {12'h0, paddr};
 	end
 
 	always_ff @(posedge clk) begin

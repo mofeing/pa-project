@@ -14,6 +14,8 @@ module decoder
 	output	common::mux_a_t		a,
 	output	common::mux_b_t		b,
 	output	common::func_t		alu_func,
+	output	logic				use_rm1,
+	output	logic				use_rm2,
 
 	// Flags
 	output	logic				flag_mem,
@@ -33,6 +35,8 @@ module decoder
 		r2 = instruction.fields.r.src2;
 		immediate = {17'b0, instruction.fields.m.immediate};
 		dst = instruction.fields.r.dst;
+		use_rm1 = 0;
+		use_rm2 = 0;
 
 		flag_mul = 0;
 		flag_mem = 0;
@@ -114,16 +118,35 @@ module decoder
 				flag_jump = 1;
 				immediate = {12'h0, instruction.fields.b.offset_hi, instruction.fields.b.src2, instruction.fields.b.offset_lo};
 			end
-			opcode::mov : begin
-				alu_func = func::land;
-				a = mux_a::regfile;
-				b = mux_b::regfile;
-				flag_reg = 1;
-				// r2 = r1;
-			end
-			opcode::tlbwrite : begin
+			opcode::mov_rm1 : begin
 				alu_func = func::add;
-				flag_tlbwrite = (instruction.fields.b.offset_lo == 0) ? tlbwrite_signal::itlb : tlbwrite_signal::dtlb;
+				a = mux_a::regfile;
+				b = mux_b::immediate;
+				immediate = 0;
+				flag_reg = 1;
+				use_rm1 = 1;
+			end
+			opcode::mov_rm2 : begin
+				alu_func = func::add;
+				a = mux_a::regfile;
+				b = mux_b::immediate;
+				immediate = 0;
+				flag_reg = 1;
+				use_rm2 = 1;
+			end
+			opcode::tlbwrite_i : begin
+				alu_func = func::add;
+				flag_tlbwrite = tlbwrite_signal::itlb;
+				a = mux_a::regfile;
+				b = mux_b::immediate;
+				immediate = 0;
+			end
+			opcode::tlbwrite_d : begin
+				alu_func = func::add;
+				flag_tlbwrite = tlbwrite_signal::dtlb;
+				a = mux_a::regfile;
+				b = mux_b::immediate;
+				immediate = 0;
 			end
 			opcode::iret : begin
 				flag_iret = 1;

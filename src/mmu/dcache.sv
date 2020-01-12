@@ -215,6 +215,10 @@ module dcache_setassociative
 			end
 		end
 
+		// TODO Bypass conditions for store: Cancel store if entry is waiting for memory
+		if (flag_store && miss == 0 && entry[req_idx][j].waiting) begin
+			miss = 0;
+		end
 	end
 
 	always_ff @(posedge clk) begin
@@ -225,8 +229,6 @@ module dcache_setassociative
 		else begin
 			// Update age of entries
 			foreach (entry[i,j]) entry[i][j].age <= entry[i][j].age + 1;
-
-			// TODO Bypass conditions for store
 
 			// Commit store to cacheline after passing the committer
 			if (store_en) begin
