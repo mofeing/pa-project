@@ -1,0 +1,131 @@
+Este es el codigo para buffer_sum en paralelo en ensamblador.
+El codigo empieza en la dirección 0x1000
+Los datos se encuentran a partir de la dirección 0x4000, es decir,
+a[0] está en la dirección 0x4000, a[1] en la dirección 0x4001, etc hasta
+la dirección 0x407F que contiene el elemento a[127]
+En la dirección 0x4080 se encuentra el valor de la variable "sum"
+
+
+La memoria con los datos quedaria entonces de la siguiente manera
+0x4000 a[0]
+0x4004 a[1]
+0x4008 a[2]
+0x400C a[3]
+0x4010 a[4]
+0x4014 a[5]
+.
+.
+.
+0x41FC a[127]
+0x4200 sum hilo 0
+0x4204 sum hilo 1
+0x4208 sum hilo 2
+0x420C sum hilo 3
+0x4210 sum hilo 4
+0x4214 sum hilo 5
+0x4218 sum hilo 6
+0x421C sum hilo 7
+
+
+
+*****************************************************************************************
+La memoria con el código sería la siguiente
+
+//r7 guarda la direccion del elemento "i" de a[]. Posteriormente una copia de la direccion de "sum" del hilo 0
+//r8 guarda el valor de a[i]
+//r9 guarda la direccion de memoria donde esta sum
+//r10 guarda el valor acumulado de la variable "sum"
+//r11 guarda el valor actual de "i", despues de los calculos, guarda la ultima direccion para acumular los sums
+//r12 guarda el valor "16"
+//r13 guarda donde debe apuntar este hilo respecto a a[]
+//r14 guarda el valor leido de los "sum" de los demas hilos
+//r15 registro que vale 0
+//r31 guarda el numero de hilo
+
+0x1000 ADD.I 16384(r7)->r7   //Guardamso 0x4000 en r7
+0x1004 ADD.I 16(r12)->r12    //Guardamos 16 en r12
+0x1008 ADD.I 16896(r9)->r9   //Guardamos la direccion de sum del hilo 0 en r9      
+0x100C ADD.I 4(r13)->r13     //Calculamos posicion del hilo en a[] y de sum
+0x1010 MUL r13,r31->r13      //Pos = Id_hilo*4
+0x1014 ADD r13,r9->r9        //Direccion sum_hilo = 0x4200 + Pos
+0x1018 ADD r7,r13->r13       //Direccion de a[] del hilo = 0x4000 + Pos
+0x101C BEQ r11,r12,24        //i==16
+0x1020 LDW 0(r13)->r8        //Guardamos a[i] en r8
+0x1024 ADD r8,r10->r10       //sum = sum + a[i]
+0x1028 ADD.I 1(r11)->r11     //i++
+0x102C ADD.I 32(r13)->r13    //Movemos posicion que leeremos de a -> i*8 -> 32 posiciones bytes
+0x1030 JUMP r15,4124         //Volvemos a comprobar i==16, fin de bucle i, 4124 = 0x101C
+0x1034 STW r10->0(r9)        //Cada hilo guarda su valor acumulado de sum
+0x1038 BEQ r31,r15,8         //Si es el hilo 0, le quedan hacer cosas
+0x103C JUMP r15,4156         //while(true){} 4156=0x103C
+0x1040 ADD.I 16920(r15)->r11 //Guardamos en r11 la ultima direccion que debe leer, 0x421C, -4 por leer +4
+0x1044 ADD r9,r15->r7        //Guardamos una copia de la direccion de "sum" del hilo 0 en r7
+0x1048 LDW 4(r9)->r14        //Leemos los demas sums si somos el hilo 0. Una por una empezando por la del hilo 0 +1 (+4 por ser bytes)
+0x104C BEQ r14,r15,16        //Comprobamos si el valor leido es 0 (si no ha terminado ese hilo de calcular cosas)
+0x1050 ADD r14,r10->r10      //Sumamos el valor sumado por el hilo al valor total
+0x1054 BEQ r11,r9,12         //Comprobamos si esta es la ultima direccion a leer
+0x1058 ADD.I 4(r9)->r9       //Nos movemos para intentar leer el valor calculado por el siguiente hilo
+0x105C JUMP r15,4168         //Volvemos a intentar leer valores de sum en memoria. 4168 = 0x1048
+0x1060 STW r10->0(r7)        //El hilo 0 guarda la suma de todos los sum de todos los hilos en memoria
+0x1064 JUMP r15,4156         //Saltamos al bucle infinito. 4156 = 0x103C       
+              
+
+
+//Codigo sin comentarios
+ADD.I 16384(r7)->r7
+ADD.I 16(r12)->r12
+ADD.I 16896(r9)->r9
+ADD.I 4(r13)->r13 
+MUL r13,r31->r13
+ADD r13,r9->r9
+ADD r7,r13->r13
+BEQ r11,r12,24
+LDW 0(r13)->r8
+ADD r8,r10->r10
+ADD.I 1(r11)->r11
+ADD.I 32(r13)->r13
+JUMP r15,4124
+STW r10->0(r9)
+BEQ r31,r15,8
+JUMP r15,4156
+ADD.I 16920(r15)->r11
+ADD r9,r15->r7
+LDW 4(r9)->r14
+BEQ r14,r15,16
+ADD r14,r10->r10
+BEQ r11,r9,12
+ADD.I 4(r9)->r9
+JUMP r15,4168
+STW r10->0(r7)
+JUMP r15,4156
+
+//Binario
+01101000011100111100000000000000-
+01101000101101011000000010000000-
+01101000100101001100001000000000-
+01100000000001011011000000011000-
+00100010100000111000000000000000-
+00000000101001000010100000000000-
+01101000101101011000000000000001-
+01101000011100111000000000000100-
+01100010000001100001000000001100-
+00100110101001001000000000000000-
+01100010000001101001000000101000
+
+//HEXA
+6873C000
+68B58080
+6894C200
+6005B018
+22838000
+00A42800
+68B58001
+68738004
+6206100C
+26A48000
+62069028
+
+
+********************************************************************************************************
+Consideremos que todos los elementos de a[] tienen el valor 1. De esa forma sabemos que la suma de todos
+sus elementos deberia ser 128

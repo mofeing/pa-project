@@ -1,0 +1,53 @@
+Codigo de la exception handler
+Comienza en la direccion 0x2000
+
+El codigo estipulado en la descipcion del proyecto es:
+Store r5->[A]
+Store r6->[B]
+MOV rm1->r5
+ADD r5, #8000 -> r6 // r6 represents the translation of r5
+TLBWRITE r5, r6  // (r5 = virtual @, r6 = physical @)
+Load [A] -> r5
+Load [B] -> r6
+IRET
+
+
+Siendo:
+A=0x2200
+B=0x2204
+
+Necesitamos guardar en memoria el contenido de r1 para despues recuperarlo
+r1 contendra el valor de rm2
+r30 contiene siempre 0
+
+Nuestro codigo seria:
+ 0x2000 STW r5->8704(r30)      //Guardamos r5 en 0x2200, 8704=0x2200
+ 0x2004 STW r6->8708(r30)      //Guardamos r6 en 0x2204
+ 0x2008 STW r1->8712(r30)      //Guardamos r1 en 0x2208
+ 0x200c MOV.rm1 r5             //Movemos el valor rm1 a r5
+ 0x2010 ADD.I 32768(r5)->r6    //r6 = r5 + 0x8000
+ 0x2014 MOV.rm2 r1             //Movemos el valor de rm2 a r1
+ 0x2018 BEQ r1,r30,12          //Comprobamos si es un tlbwrite de instrucciones (rm2=0) o datos (rm2=1)
+ 0x201c TLBWRITE.D r5,r6       //Ejecutamos el tlbwrite de datos
+ 0x2020 JUMP r30,8232          //Saltamos a la 0x2028 para seguir 8232=0x2028
+ 0x2024 TLBWRITE.I r5,r6       //Si se trata de un tlb miss de instrucctione llegaremos a aqui
+ 0x2028 LDW 8704(r30)->r5      //Restauramos el valor de rm5
+ 0x202c LDW 8708(r30)->r6      //Restauramos el valor de r6 
+ 0x2030 LDW 8712(r30)->r1      //Restauramos el valor de r1
+ 0x2034 IRET                   //IRET
+
+//Sin comentarios
+STW r5->8704(r30)
+STW r6->8708(r30)
+STW r1->8712(r30)
+MOV.rm1 r5
+ADD.I 32768(r5)->r6
+MOV.rm2 r1
+BEQ r1,r30,12
+TLBWRITE.I r5,r6
+JUMP r30,8232
+TLBWRITE.D r5,r6
+LDW 8704(r30)->r5
+LDW 8708(r30)->r6
+LDW 8712(r30)-r1
+IRET

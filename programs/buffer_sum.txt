@@ -1,0 +1,93 @@
+Este es el codigo para buffer_sum en ensamblador.
+El codigo empieza en la dirección 0x1000
+Los datos se encuentran a partir de la dirección 0x4000, es decir,
+a[0] está en la dirección 0x4000, a[1] en la dirección 0x4001, etc hasta
+la dirección 0x407F que contiene el elemento a[127]
+En la dirección 0x4080 se encuentra el valor de la variable "sum"
+
+
+La memoria con los datos quedaria entonces de la siguiente manera
+0x4000 a[0]
+0x4004 a[1]
+0x4008 a[2]
+0x400C a[3]
+0x4010 a[4]
+0x4014 a[5]
+.
+.
+.
+0x41FC a[127]
+0x4200 sum
+
+
+
+*****************************************************************************************
+La memoria con el código sería la siguiente
+
+//r7 guarda la direccion del elemento "i" de a[].
+//r8 guarda el valor de a[i]
+//r9 guarda la direccion de memoria donde esta sum
+//r10 guarda el valor acumulado de la variable "sum"
+//r11 guarda el valor actual de "i"
+//r12 guarda el valor "128" 
+
+0x1000 ADD.I 16384(r7)->r7 
+0x1004 ADD.I 128(r11)->r11
+0x1008 ADD.I 16896(r9)->r9
+0x100C BEQ r11,r12,24
+0x1010 LDW 0(r7)->r8
+0x1014 ADD r8,r10->r10
+0x1018 ADD.I 1(r11)->r11
+0x101C ADD.I 4(r7)->r7
+0x1020 JUMP r13,4108 
+0x1024 STW r10->0(r9)
+0x1028 JUMP r13,4136
+
+//Codigo sin comentarios
+ADD.I 16384(r7)->r7
+ADD.I 128(r12)->r12
+ADD.I 16896(r9)->r9
+BEQ r11,r12,24
+LDW 0(r7)->r8
+ADD r8,r10->r10
+ADD.I 1(r11)->r11
+ADD.I 4(r7)->r7
+JUMP r13,4108
+STW r10->0(r9)
+JUMP r13,4136
+
+//Binario
+01101000011100111100000000000000-
+01101000101101011000000010000000-
+01101000100101001100001000000000-
+01100000000001011011000000011000-
+00100010100000111000000000000000-
+00000000101001000010100000000000-
+01101000101101011000000000000001-
+01101000011100111000000000000100-
+01100010000001100001000000001100-
+00100110101001001000000000000000-
+01100010000001101001000000101000
+
+//HEXA
+6873C000
+68B58080
+6894C200
+6005B018
+22838000
+00A42800
+68B58001
+68738004
+6206100C
+26A48000
+62069028
+
+
+********************************************************************************************************
+Consideremos que todos los elementos de a[] tienen el valor 1. De esa forma sabemos que la suma de todos
+sus elementos deberia ser 128
+
+
+
+
+

@@ -1,0 +1,20 @@
+// Registros
+r7 contiene la dirección del elemento a[i]
+r8 contiene la dirección del último elemento de a[] (a[128])
+r9 contiene el elemento a[i]
+r10 contiene la suma
+r11 está vacío (0)    
+
+// Ensamblador
+0x1000: ADD.I 0x4000(r7) -> r7
+0x1004: ADD.I 0x4200(r8) -> r8
+0x1008: BEQ r7, r8, 0x14
+0x100C: LDW 0(r7) -> r9
+0x1010: ADD.I 0x0004(r7) -> r7
+0x1014: ADD r9, r10 -> r10
+0x1018: JUMP 0x1008(r11)
+0x101C: JUMP 0x101C(r11)
+
+
+
+

@@ -1,0 +1,145 @@
+Este es el codigo para mem_copy paralelizado en ensamblador.
+El codigo empieza en la dirección 0x1000
+
+//r7 guarda direccion de a[0]
+//r8 guarda VALOR DE a[i]
+//r9 guarda la direccion de b[0]
+//r10 guarda i
+//r11 guarda "16"
+//r12 guarda posicion que este hilo trata de a[]
+//r13 guarda posicion que este hilo trata de b[]
+//r14 guarda copia posicion que este hilo trata de a[], para no recalcular en el segundo bucle
+//r15 registro que vale 0
+
+
+//Para calcular la direccion que debe acceder cada hilo se ha usado la siguiente formula
+//Pos_hilo = Dirección_inicio_vector + 4*(r31 + i*8)
+//Para el caso de a[] empieza en la direccion 0x4000
+//Quedaria entonces para i=0
+//Hilo 0: Pos_hilo = 0x4000 + 4*(0 + 0*8) = 0x4000
+//Hilo 1: Pos_hilo = 0x4000 + 4*(1 + 0*8) = 0x4004
+//Hilo 2: Pos_hilo = 0x4000 + 4*(2 + 0*8) = 0x4008
+//Hilo 3: Pos_hilo = 0x4000 + 4*(3 + 0*8) = 0x400C
+//Hilo 4: Pos_hilo = 0x4000 + 4*(4 + 0*8) = 0x4010
+//Hilo 5: Pos_hilo = 0x4000 + 4*(5 + 0*8) = 0x4014
+//Hilo 6: Pos_hilo = 0x4000 + 4*(6 + 0*8) = 0x4018
+//Hilo 7: Pos_hilo = 0x4000 + 4*(7 + 0*8) = 0x401C
+//Para i=1
+//Hilo 0: Pos_hilo = 0x4000 + 4*(0 + 1*8) = 0x4020
+//Hilo 1: Pos_hilo = 0x4000 + 4*(1 + 1*8) = 0x4024
+//Hilo 2: Pos_hilo = 0x4000 + 4*(2 + 1*8) = 0x4028
+//Hilo 3: Pos_hilo = 0x4000 + 4*(3 + 1*8) = 0x402C
+//Hilo 4: Pos_hilo = 0x4000 + 4*(4 + 1*8) = 0x4030
+//Hilo 5: Pos_hilo = 0x4000 + 4*(5 + 1*8) = 0x4034
+//Hilo 6: Pos_hilo = 0x4000 + 4*(6 + 1*8) = 0x4038
+//Hilo 7: Pos_hilo = 0x4000 + 4*(7 + 1*8) = 0x403C
+//De esta forma el unico valor que hay que cambiar en cada iteracion es la "i"
+
+//AQUI EL CALCULO ES EL MISMO PERO SE CALCULA ANTES DEL BUCLE Y LUEGO SE LE SUMA 32 POSICIONES
+
+0x1000 ADD.I 16384(r7)->r7   //Guardamos en r7 la direccion de a[0]
+0x1004 ADD.I 16896(r9)->r9   //Guardamos en r9 la direccion de b[0]
+0x1008 ADD.I 5(r8)->r8       //Guardamos en r8 el valor 5 que habra que asignarle a cada a[i]
+0x100C ADD.I 16(r11)->r11    //Guardamos en r11 el valor 16 para saber cuando finaliza el bulce
+0x1010 ADD.I 4(r12)->r12     //Empezamos a calcular la posicion de inicio de este hilo. Primero, Pos=4
+0x1014 MUL r12,r31->r12      //Ahora Pos = Pos*NumHilo. Hilo 0 seria 0x0, hilo 1 en 0x4 etc
+0x1018 ADD r9,r12->r13       //Guardamos en r13 donde comienza este hilo a leer en el vector b[]. 0x4200 + Pos
+0x101C ADD r7,r12->r12       //Guardamos en r12 donde comienza este hilo a leer en el vector a[]. 0x4000 + Pos
+0x1020 ADD r12,r14->r14      //Guardamos en r14 una copia de la direccion que debe leer este hilo de a[] para ahorrar recalcularlo 
+0x1024 BEQ r10,r11,20        //i==16
+0x1028 STW r8->0(r12)        //a[i]=5
+0x102C ADD.I 32(r12)->r12    //Este hilo se desplaza 32 posiciones de memoria (8posiciones del vector). Hilo 0 de 0x4000 a 0x4020, hilo 1 de 0x4004 a 0x4024 etc
+0x1030 ADD.I 1(r10)->r10     //i++
+0x1034 JUMP r15,4132         //Fin primer bucle for i
+0x1038 SUB r10,r10->r10      //i=0
+0x103C BEQ r10,r11,28        //i==16. Segundo bucle for
+0x1040 LDW 0(r14)->r8        //Cargamos en r8 el valor de a[i]. Teniamos la copia de la priemra direccion de este hilo en r14
+0x1044 STW r8->0(r13)        //b[i]=a[i]
+0x1048 ADD.I 32(r13)->r13    //Este hilo se desplaza 32 posiciones de memoria en b[]
+0x104C ADD.I 32(r14)->r14    //Este hilo se desplaza 32 posiciones de memoria en a[]
+0x1050 ADD.I 1(r10)->r10     //i++
+0x1054 JUMP r15,4156         //fin segundo bucle for
+0x1058 JUMP r15,4184         //while(1){}
+
+
+//Codigo sin comentarios
+ADD.I 16384(r7)->r7
+ADD.I 16896(r9)->r9
+ADD.I 5(r8)->r8
+ADD.I 16(r11)->r11
+ADD.I 4(r12)->r12
+MUL r12,r31->r12
+ADD r9,r12->r13
+ADD r7,r12->r12
+ADD r12,r14->r14
+BEQ r10,r11,20
+STW r8->0(r12)
+ADD.I 32(r12)->r12
+ADD.I 1(r10)->r10
+JUMP r15,4132
+SUB r10,r10->r10 
+BEQ r10,r11,28
+LDW 0(r14)->r8
+STW r8->0(r13)
+ADD.I 32(r13)->r13
+ADD.I 32(r14)->r14
+ADD.I 1(r10)->r10
+JUMP r15,4156
+JUMP r15,4184
+
+//Binario
+01101000011100111100000000000000
+01101000100101001100001000000000
+01101000100001000000000000000101
+01101000101101011000000000010000
+01101000110001100000000000000100
+00000100110001100111110000000000
+00000000110101001011000000000000
+00000000110000111011000000000000
+00000000111001100011100000000000
+01100000000001010010110000010100
+00100110100001100000000000000000
+01101000110001100000000000100000
+01101000101001010000000000000001
+01100010000001111001000000100100
+00000010101001010010100000000000
+01100000000001010010110000011100
+00100010100001110000000000000000
+00100110100001101000000000000000
+01101000110101101000000000100000
+01101000111001110000000000100000
+01101000101001010000000000000001
+01100010000001111001000000111100
+01100010000001111001000001011000
+
+//HEXA
+6873C000
+6894C200
+68840005
+68B08010
+68C08004
+04C67C00
+00D4B000
+00C3B000
+00E63800
+60052C14-
+26808000
+68C08020
+68A08001
+62079024
+02A52800
+60052C1C-
+22808000
+26808000
+68D08008
+68E08008
+68A08001
+6207903C
+62079058
+
+
+//Memoria datos
+0x4000 a[0]
+0x41FC a[127]
+0x4200 b[0]
+0x43FC b[127]
